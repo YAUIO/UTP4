@@ -1,7 +1,6 @@
 package GUI;
 
 import javax.swing.*;
-import java.awt.*;
 
 public class LibrarianUI {
     private final db.Librarian user;
@@ -9,42 +8,53 @@ public class LibrarianUI {
     LibrarianUI(db.Librarian user) {
         this.user = user;
 
-        JFrame frame = new JFrame("Librarian Dashboard");
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(600, 400);
-        frame.setLayout(new BorderLayout());
+        TableWrapper frame = new TableWrapper();
 
-        JPanel panel = new JPanel();
-        panel.setLayout(new GridLayout(4, 1, 10, 10));
+        JMenuBar jmb = new JMenuBar();
 
-        JButton addUserButton = new JButton("Users");
-        JButton editUserButton = new JButton("Books");
-        JButton deleteUserButton = new JButton("Borrowings");
+        jmb.add(getTableChooser(frame));
 
-        panel.add(addUserButton);
-        panel.add(editUserButton);
-        panel.add(deleteUserButton);
+        jmb.add(getEditChooser(frame));
 
-        frame.add(panel, BorderLayout.CENTER);
+        frame.setJMenuBar(jmb);
+    }
 
-        addUserButton.addActionListener(e -> {
-            frame.setVisible(false);
-            frame.removeAll();
-            frame.dispose();
+    private JMenu getEditChooser(TableWrapper frame) {
+        JMenu tables = new JMenu("Edit");
+        JMenuItem create = new JMenuItem("Create");
+        JMenuItem delete = new JMenuItem("Delete");
+        JMenuItem duplicateWithNewId = new JMenuItem("Duplicate with new ID");
 
-            JFrame fr = new JFrame();
-            fr.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-            Dimension size = new Dimension(1280,720);
-            fr.setSize(size);
-            fr.setPreferredSize(size);
-            DisplayTable users = new DisplayTable(db.User.class);
-            fr.add(users.get());
-            fr.pack();
-            fr.setVisible(true);
-        });
-        editUserButton.addActionListener(e -> JOptionPane.showMessageDialog(frame, "Edit User clicked"));
-        deleteUserButton.addActionListener(e -> JOptionPane.showMessageDialog(frame, "Delete User clicked"));
+        tables.add(duplicateWithNewId);
+        tables.add(delete);
+        tables.add(create);
 
-        frame.setVisible(true);
+        /*duplicateWithNewId.addActionListener();
+        delete.addActionListener();
+        create.addActionListener();*/
+
+        return tables;
+    }
+
+    private JMenu getTableChooser(TableWrapper frame) {
+        JMenu tables = new JMenu("Data");
+        JMenuItem users = new JMenuItem("Users");
+        JMenuItem books = new JMenuItem("Books");
+        JMenuItem borrowings = new JMenuItem("Borrowings");
+
+        tables.add(users);
+        tables.add(books);
+        tables.add(borrowings);
+
+        users.addActionListener(e -> actionTableListener(db.User.class,frame));
+        books.addActionListener(e -> actionTableListener(db.Book.class,frame));
+        borrowings.addActionListener(e -> actionTableListener(db.Borrowing.class,frame));
+
+        return tables;
+    }
+
+    private void actionTableListener(Class<?> ent, TableWrapper tw) {
+        DisplayTable dt = new DisplayTable(ent);
+        tw.changeTable(dt);
     }
 }

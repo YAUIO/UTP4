@@ -21,7 +21,8 @@ public class User {
     @Column(nullable = false)
     private String address;
 
-    public User() {}
+    public User() {
+    }
 
     public User(String name, String email, String phoneNumber, String address) {
         this.name = name;
@@ -42,7 +43,7 @@ public class User {
         this.phoneNumber = phoneNumber;
         EntityManager em = Init.getEntityManager();
         em.getTransaction().begin();
-        em.persist(this);
+        em.merge(this);
         em.getTransaction().commit();
     }
 
@@ -50,7 +51,7 @@ public class User {
         this.name = name;
         EntityManager em = Init.getEntityManager();
         em.getTransaction().begin();
-        em.persist(this);
+        em.merge(this);
         em.getTransaction().commit();
     }
 
@@ -58,7 +59,7 @@ public class User {
         this.email = email;
         EntityManager em = Init.getEntityManager();
         em.getTransaction().begin();
-        em.persist(this);
+        em.merge(this);
         em.getTransaction().commit();
     }
 
@@ -66,15 +67,7 @@ public class User {
         this.address = address;
         EntityManager em = Init.getEntityManager();
         em.getTransaction().begin();
-        em.persist(this);
-        em.getTransaction().commit();
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-        EntityManager em = Init.getEntityManager();
-        em.getTransaction().begin();
-        em.persist(this);
+        em.merge(this);
         em.getTransaction().commit();
     }
 

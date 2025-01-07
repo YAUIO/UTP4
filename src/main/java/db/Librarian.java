@@ -37,7 +37,7 @@ public class Librarian {
         this.user = user;
         EntityManager em = Init.getEntityManager();
         em.getTransaction().begin();
-        em.persist(this);
+        em.merge(this);
         em.getTransaction().commit();
     }
 
@@ -45,7 +45,7 @@ public class Librarian {
         this.employmentDate = employmentDate;
         EntityManager em = Init.getEntityManager();
         em.getTransaction().begin();
-        em.persist(this);
+        em.merge(this);
         em.getTransaction().commit();
     }
 
@@ -53,7 +53,7 @@ public class Librarian {
         this.position = position;
         EntityManager em = Init.getEntityManager();
         em.getTransaction().begin();
-        em.persist(this);
+        em.merge(this);
         em.getTransaction().commit();
     }
 

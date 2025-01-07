@@ -35,7 +35,7 @@ public class Copy {
         this.book = book;
         EntityManager em = Init.getEntityManager();
         em.getTransaction().begin();
-        em.persist(this);
+        em.merge(this);
         em.getTransaction().commit();
     }
 
@@ -43,7 +43,7 @@ public class Copy {
         this.copyNumber = copyNumber;
         EntityManager em = Init.getEntityManager();
         em.getTransaction().begin();
-        em.persist(this);
+        em.merge(this);
         em.getTransaction().commit();
     }
 
@@ -51,7 +51,7 @@ public class Copy {
         this.status = status;
         EntityManager em = Init.getEntityManager();
         em.getTransaction().begin();
-        em.persist(this);
+        em.merge(this);
         em.getTransaction().commit();
     }
 

@@ -56,7 +56,7 @@ public class Borrowing {
         this.book = book;
         EntityManager em = Init.getEntityManager();
         em.getTransaction().begin();
-        em.persist(this);
+        em.merge(this);
         em.getTransaction().commit();
     }
 
@@ -64,7 +64,7 @@ public class Borrowing {
         this.borrowDate = borrowDate;
         EntityManager em = Init.getEntityManager();
         em.getTransaction().begin();
-        em.persist(this);
+        em.merge(this);
         em.getTransaction().commit();
     }
 
@@ -72,7 +72,7 @@ public class Borrowing {
         this.returnDate = returnDate;
         EntityManager em = Init.getEntityManager();
         em.getTransaction().begin();
-        em.persist(this);
+        em.merge(this);
         em.getTransaction().commit();
     }
 
@@ -80,7 +80,7 @@ public class Borrowing {
         this.user = user;
         EntityManager em = Init.getEntityManager();
         em.getTransaction().begin();
-        em.persist(this);
+        em.merge(this);
         em.getTransaction().commit();
     }
 

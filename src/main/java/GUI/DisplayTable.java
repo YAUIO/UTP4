@@ -1,43 +1,87 @@
 package GUI;
 
 import javax.swing.*;
+import javax.swing.event.TableModelEvent;
 import javax.swing.table.DefaultTableModel;
-import java.awt.*;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Objects;
 
 public class DisplayTable {
     private final Class<?> entity;
-    private final ArrayList<Field> fields;
+    private final HashMap<Field, Method> fields;
     private DefaultTableModel table;
+    private final StringBuilder headerLine;
+    private final String[] header;
+    private final ArrayList<Object> objects;
 
     public DisplayTable(Class<?> entity) {
         this.entity = entity;
-        this.fields = new ArrayList<>();
+        this.fields = new HashMap<>();
+        this.objects = new ArrayList<>();
 
-        ArrayList<StringBuilder> tsv = new ArrayList<>();
-        StringBuilder headerLine = new StringBuilder();
+        headerLine = new StringBuilder();
 
         Arrays.stream(entity.getDeclaredFields())
                 .forEach(f -> {
-                    fields.add(f);
+                    fields.put(f, null);
                     headerLine.append(f.getName()).append(" ");
                 });
-        tsv.add(headerLine);
+        header = headerLine.toString().split("\\s+");
 
+        Arrays.stream(entity.getDeclaredMethods())
+                .forEach(m -> {
+                    fields.keySet().stream().filter(f -> m.getName().toLowerCase().equals("set" + f.getName().toLowerCase()))
+                            .forEach(f -> fields.put(f, m));
+                });
+
+        update();
+
+        table.addTableModelListener(e -> {
+            switch (e.getType()) {
+                case TableModelEvent.UPDATE -> {
+                    String value = (String) table.getDataVector().get(e.getLastRow()).get(e.getColumn());
+                    fields.keySet().stream()
+                            .filter(f -> f.getName().equals(header[e.getColumn()]))
+                            .forEach(f -> {
+                        try {
+                            System.out.println(fields.get(f).getName());
+                            fields.get(f).invoke(objects.get(e.getLastRow()), value);
+                        } catch (Exception ex) {
+                            System.out.println("Exception: " + ex.getClass().getName()+ " " + ex.getMessage());
+                        }
+                    });
+
+                }
+                default -> System.out.println(e.getType());
+            }
+        });
+    }
+
+    private void update() {
+        ArrayList<StringBuilder> tsv = new ArrayList<>();
+        tsv.add(headerLine);
         try {
             db.Init.getEntityManager().createQuery("SELECT o FROM " + entity.getName() + " o", entity)
                     .getResultStream()
                     .forEach(o -> {
                         StringBuilder rowLine = new StringBuilder();
-                        for (Field f : fields) {
-                            f.setAccessible(true);
-                            try {
-                                rowLine.append(f.get(o)).append(" ");
-                            } catch (Exception e) {
-                                System.out.println("Error: " + e.getMessage());
-                            }
+                        objects.add(o);
+                        for (String s : header) {
+                            fields.keySet().stream()
+                                    .filter(f -> f.getName().equals(s))
+                                    .forEach(f -> {
+                                        f.setAccessible(true);
+                                        try {
+                                            rowLine.append(f.get(o)).append(" ");
+                                        } catch (Exception e) {
+                                            System.out.println("Error: " + e.getMessage());
+                                        }
+                                    });
                         }
                         tsv.add(rowLine);
                     });
@@ -54,11 +98,20 @@ public class DisplayTable {
             }
         }
 
-        table = new DefaultTableModel(data, tsv.getFirst().toString().split("\\s+"));
+        table = new DefaultTableModel(data, tsv.getFirst().toString().split("\\s+")) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return !header[column].equals("id");
+            }
+        };
     }
 
     public JScrollPane get() {
         JTable tableView = new JTable(table);
         return new JScrollPane(tableView);
+    }
+
+    public String getClassName() {
+        return entity.getName();
     }
 }
