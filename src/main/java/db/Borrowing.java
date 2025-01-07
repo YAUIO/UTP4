@@ -86,12 +86,10 @@ public class Borrowing {
 
     @Override
     public String toString() {
-        return "Borrowing{" +
-                "id=" + id +
+        return "id=" + id +
                 ", user=" + user +
                 ", book=" + book +
                 ", borrowDate=" + borrowDate +
-                ", returnDate=" + returnDate +
-                '}';
+                ", returnDate=" + returnDate;
     }
 }

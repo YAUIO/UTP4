@@ -1,5 +1,3 @@
-import jakarta.persistence.NoResultException;
-
 import java.sql.Date;
 import java.time.Instant;
 

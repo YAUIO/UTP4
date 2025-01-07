@@ -96,6 +96,8 @@ public class Login {
                         .getSingleResult();
 
                 JOptionPane.showMessageDialog(frame, "Welcome, user" + user.getId());
+
+                frame.dispose();
                 login(user);
             } catch (NoResultException _) {
                 JOptionPane.showMessageDialog(frame, "Invalid username or id");

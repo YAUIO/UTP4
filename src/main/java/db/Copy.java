@@ -57,11 +57,9 @@ public class Copy {
 
     @Override
     public String toString() {
-        return "Copy{" +
-                "id=" + id +
+        return "id=" + id +
                 ", book=" + book +
                 ", copyNumber=" + copyNumber +
-                ", status='" + status + '\'' +
-                '}';
+                ", status='" + status + '\'';
     }
 }

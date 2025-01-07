@@ -28,13 +28,11 @@ public class Book {
 
     @Override
     public String toString() {
-        return "Book{" +
-                "id=" + id +
+        return "id=" + id +
                 ", title='" + title + '\'' +
                 ", author='" + author + '\'' +
                 ", publisher='" + publisher + '\'' +
                 ", publicationYear=" + publicationYear +
-                ", isbn='" + isbn + '\'' +
-                '}';
+                ", isbn='" + isbn + '\'';
     }
 }

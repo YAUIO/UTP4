@@ -59,11 +59,9 @@ public class Librarian {
 
     @Override
     public String toString() {
-        return "Librarian{" +
-                "id=" + id +
+        return "id=" + id +
                 ", user=" + user +
                 ", employmentDate=" + employmentDate +
-                ", position='" + position + '\'' +
-                '}';
+                ", position='" + position + '\'';
     }
 }

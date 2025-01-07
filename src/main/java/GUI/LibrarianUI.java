@@ -17,22 +17,33 @@ public class LibrarianUI {
         JPanel panel = new JPanel();
         panel.setLayout(new GridLayout(4, 1, 10, 10));
 
-        JButton addUserButton = new JButton("Add User");
-        JButton editUserButton = new JButton("Edit User");
-        JButton deleteUserButton = new JButton("Delete User");
-        JButton viewBorrowingsButton = new JButton("View Borrowings");
+        JButton addUserButton = new JButton("Users");
+        JButton editUserButton = new JButton("Books");
+        JButton deleteUserButton = new JButton("Borrowings");
 
         panel.add(addUserButton);
         panel.add(editUserButton);
         panel.add(deleteUserButton);
-        panel.add(viewBorrowingsButton);
 
         frame.add(panel, BorderLayout.CENTER);
 
-        addUserButton.addActionListener(e -> JOptionPane.showMessageDialog(frame, "Add User clicked"));
+        addUserButton.addActionListener(e -> {
+            frame.setVisible(false);
+            frame.removeAll();
+            frame.dispose();
+
+            JFrame fr = new JFrame();
+            fr.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+            Dimension size = new Dimension(1280,720);
+            fr.setSize(size);
+            fr.setPreferredSize(size);
+            DisplayTable users = new DisplayTable(db.User.class);
+            fr.add(users.get());
+            fr.pack();
+            fr.setVisible(true);
+        });
         editUserButton.addActionListener(e -> JOptionPane.showMessageDialog(frame, "Edit User clicked"));
         deleteUserButton.addActionListener(e -> JOptionPane.showMessageDialog(frame, "Delete User clicked"));
-        viewBorrowingsButton.addActionListener(e -> JOptionPane.showMessageDialog(frame, "View Borrowings clicked"));
 
         frame.setVisible(true);
     }

@@ -56,11 +56,9 @@ public class Publisher {
 
     @Override
     public String toString() {
-        return "Publisher{" +
-                "id=" + id +
+        return "id=" + id +
                 ", name='" + name + '\'' +
                 ", address='" + address + '\'' +
-                ", phone='" + phone + '\'' +
-                '}';
+                ", phone='" + phone + '\'';
     }
 }
