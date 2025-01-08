@@ -1,13 +1,11 @@
 package GUI;
 
-import db.CopyConstructor;
-import db.FullArgsConstructor;
+import db.Annotations.CopyConstructor;
+import db.Annotations.FullArgsConstructor;
 
 import javax.swing.*;
 import java.awt.*;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
-import java.util.Vector;
 
 public class LibrarianUI {
     private final db.Librarian user;

@@ -1,5 +1,7 @@
 package db;
 
+import db.Annotations.CopyConstructor;
+import db.Annotations.FullArgsConstructor;
 import jakarta.persistence.*;
 
 @Entity
