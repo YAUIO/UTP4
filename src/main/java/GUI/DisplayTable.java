@@ -1,15 +1,14 @@
 package GUI;
 
+import jakarta.persistence.Entity;
+
 import javax.swing.*;
 import javax.swing.event.TableModelEvent;
 import javax.swing.table.DefaultTableModel;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Objects;
+import java.util.*;
 
 public class DisplayTable {
     private final Class<?> entity;
@@ -84,7 +83,22 @@ public class DisplayTable {
                                     .forEach(f -> {
                                         f.setAccessible(true);
                                         try {
-                                            rowLine.append(f.get(o)).append(" ");
+                                            if (f.getType().isAnnotationPresent(Entity.class)) {
+                                                Optional<Field> field =
+                                                Arrays.stream(f.get(o).getClass().getDeclaredFields())
+                                                        .filter(ff -> ff.getName().equals("id"))
+                                                        .findFirst();
+                                                if (field.isPresent()) {
+                                                    field.get().setAccessible(true);
+                                                    rowLine.append(field.get().get(f.get(o))).append(" ");
+                                                } else {
+                                                    throw new RuntimeException("No id field in Entity class");
+                                                }
+                                            } else if (f.getType() == java.util.Date.class) {
+                                                rowLine.append(f.get(o).toString().split("\\s+")[0]).append(" ");
+                                            } else {
+                                                rowLine.append(f.get(o)).append(" ");
+                                            }
                                         } catch (Exception e) {
                                             new Error(e);
                                         }
@@ -99,6 +113,7 @@ public class DisplayTable {
 
         for (int i = 1; i < tsv.size(); i++) {
             String[] val = tsv.get(i).toString().trim().split("\\s+");
+            System.out.println(Arrays.toString(val));
             for (int f = 0; f < val.length; f++) {
                 data[i - 1][f] = val[f];
             }

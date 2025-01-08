@@ -2,10 +2,18 @@ package GUI;
 
 import db.Annotations.CopyConstructor;
 import db.Annotations.FullArgsConstructor;
+import jakarta.persistence.Entity;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.Arrays;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
+import java.text.DateFormat;
+import java.time.LocalDate;
+import java.util.*;
 
 public class LibrarianUI {
     private final db.Librarian user;
@@ -38,7 +46,7 @@ public class LibrarianUI {
 
         duplicateWithNewId.addActionListener(e -> {
             JDialog dialog = new JDialog(frame, "Duplicate with new ID");
-            dialog.setLayout(new GridLayout(3,1));
+            dialog.setLayout(new BorderLayout(3, 1));
             Dimension size = new Dimension(400, 200);
             dialog.setSize(size);
             dialog.setPreferredSize(size);
@@ -51,7 +59,7 @@ public class LibrarianUI {
             submit.addActionListener(_ -> {
                 try {
                     Object o = db.Init.getEntityManager().createQuery("SELECT o FROM " + table.getClassName() + " o WHERE o.id = :id", Class.forName(table.getClassName()))
-                            .setParameter("id",Integer.parseInt(jt.getText()))
+                            .setParameter("id", Integer.parseInt(jt.getText()))
                             .getSingleResult();
 
                     Arrays.stream(Class.forName(table.getClassName()).getDeclaredConstructors())
@@ -77,66 +85,125 @@ public class LibrarianUI {
 
         create.addActionListener(e -> {
             JDialog dialog = new JDialog(frame, "Create");
-            dialog.setLayout(new GridLayout(3,1));
-            Dimension size = new Dimension(600, 200);
-            dialog.setSize(size);
-            dialog.setPreferredSize(size);
-            dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-            dialog.add(new JLabel("Type in arguments ( " + table.getHeader() + " ) to create new record"));
-            JTextField jt = new JTextField();
-            dialog.add(jt);
-            JButton submit = new JButton("Submit");
-            dialog.add(submit);
-            submit.addActionListener(_ -> {
-                try {
-                    String[] arg = jt.getText().split("\\s+");
+            try {
+                Optional<Constructor<?>> searchResult =
+                        Arrays.stream(Class.forName(table.getClassName()).getDeclaredConstructors())
+                                .filter(c -> c.isAnnotationPresent(FullArgsConstructor.class))
+                                .findFirst();
 
-                    Object[] args = new Object[arg.length];
+                if (searchResult.isPresent()) {
+                    Constructor<?> constructor = searchResult.get();
 
-                    for (int i = 0; i < args.length; i++) {
-                        try {
-                            args[i] = Integer.parseInt(arg[i]);
-                            System.out.println(args[i] + " " + args[i].getClass().getName());
-                        } catch (NumberFormatException _) {
-                            args[i] = arg[i];
+                    Class<?>[] types = constructor.getParameterTypes();
+
+                    String[] typesStr = table.getHeader().split("\\s+");
+                    ArrayList<JComponent> entryFields = new ArrayList<>(types.length);
+
+                    for (Class<?> c : types) {
+                        if (c.isAnnotationPresent(Entity.class)) {
+                            try {
+                                Object[] arr = db.Init.getEntityManager().createQuery("SELECT o FROM " + c.getName().substring(c.getName().indexOf('.') + 1) + " o", c)
+                                        .getResultList().toArray();
+
+                                ScrollableList<Object> sel = new ScrollableList<>(new JList<>(arr));
+
+                                entryFields.add(sel);
+                            } catch (Exception _) {}
+                        } else {
+                            entryFields.add(new JTextField());
                         }
                     }
 
-                    Arrays.stream(Class.forName(table.getClassName()).getDeclaredConstructors())
-                            .filter(c -> c.isAnnotationPresent(FullArgsConstructor.class))
-                            .forEach(c -> {
-                                try {
-                                    c.newInstance(args);
-                                    table.update();
-                                } catch (Exception ex) {
-                                    throw new RuntimeException(ex);
-                                }
-                            });
-                    table.update();
-                    dialog.dispose();
-                } catch (Exception exc) {
-                    String[] arg = jt.getText().split("\\s+");
-                    try {
-                        Arrays.stream(Class.forName(table.getClassName()).getDeclaredConstructors())
-                                .filter(c -> c.isAnnotationPresent(FullArgsConstructor.class))
-                                .forEach(c -> {
-                                    try {
-                                        c.newInstance(arg);
-                                        table.update();
-                                    } catch (Exception ex) {
-                                        throw new RuntimeException(ex);
-                                    }
-                                });
-                        table.update();
-                        dialog.dispose();
-                    } catch (Exception _) {
-                        new Error("Incorrect choice: " + exc.getClass().getName() + ": " + exc.getMessage(), dialog);
-                    }
-                }
-            });
+                    JPanel selection = new JPanel(new BorderLayout());
 
-            dialog.pack();
-            dialog.setVisible(true);
+                    JPanel fr = new JPanel(new GridLayout(1, types.length));
+
+                    JPanel sr = new JPanel(new GridLayout(1, types.length));
+
+                    for (String s : typesStr) {
+                        fr.add(new JLabel(s));
+                    }
+
+                    for (JComponent jc : entryFields) {
+                        sr.add(jc);
+                    }
+
+                    selection.add(fr, BorderLayout.NORTH);
+                    selection.add(sr, BorderLayout.CENTER);
+
+                    dialog.setLayout(new BorderLayout());
+                    Dimension size = new Dimension(600 + (types.length-2)*140, 400);
+                    dialog.setSize(size);
+                    dialog.setPreferredSize(size);
+                    dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+                    dialog.add(new JLabel("Type in arguments to create new record [HINT - DATE FORMAT YYYY-MM-DD]"), BorderLayout.NORTH);
+                    dialog.add(selection, BorderLayout.CENTER);
+                    JButton submit = new JButton("Submit");
+                    dialog.add(submit, BorderLayout.SOUTH);
+                    submit.addActionListener(_ -> {
+                        try {
+                            String[] arg = new String[typesStr.length];
+                            Object[] args = new Object[arg.length];
+                            int c = 0;
+
+                            for (JComponent j : entryFields) {
+                                if (j.getClass() == JTextField.class) {
+                                    arg[c] = ((JTextField) j).getText();
+                                } else if (j.getClass() == ScrollableList.class) {
+                                    arg[c] = "set";
+                                    args[c] = ((ScrollableList<?>) j).getList().getSelectedValue();
+                                }
+                                c++;
+                            }
+
+                            for (int i = 0; i < args.length; i++) {
+                                if (types[i] != String.class && types[i] != java.util.Date.class) {
+                                    Optional<Method> res =
+                                            Arrays.stream(types[i].getDeclaredMethods())
+                                                    .filter(m -> m.getParameterCount() == 1)
+                                                    .filter(m -> m.getParameterTypes()[0] == String.class)
+                                                    .filter(m -> m.getName().contains("value"))
+                                                    .findFirst();
+                                    if (res.isPresent()) {
+                                        args[i] = types[i].cast(res.get().invoke(null, arg[i]));
+                                    }
+                                } else if (types[i] == java.util.Date.class) { //that type is ruining my beautiful code. like why do you need DateFormat.getDateInstance().parse()
+                                    args[i] = DateFormat.getDateInstance(DateFormat.SHORT).parse(arg[i]);
+                                } else {
+                                    if (arg[i].equals("set")) continue;
+                                    args[i] = arg[i];
+                                }
+                            }
+
+                            constructor.newInstance(args);
+
+                            dialog.dispose();
+
+                            table = new DisplayTable(Class.forName(table.getClassName()));
+
+                            frame.changeTable(table);
+                        } catch (Exception exc) {
+                            if (exc.getCause() == null) {
+                                new Error("Incorrect choice: " + exc.getClass().getName() + ": " + exc.getMessage(), dialog);
+                            } else if (exc.getCause().getCause() == null) {
+                                new Error("Incorrect choice: " + exc.getCause().getClass().getName() + ": " + exc.getCause().getMessage(), dialog);
+                            } else {
+                                new Error("Incorrect choice: " + exc.getCause().getCause().getClass().getName() + ": " + exc.getCause().getCause().getMessage(), dialog);
+
+                            }
+                        }
+                    });
+
+                } else {
+                    throw new RuntimeException("No viable constructor found");
+                }
+
+                dialog.pack();
+                dialog.setVisible(true);
+
+            } catch (Exception er) {
+                new Error("Incorrect choice: " + er.getClass().getName() + ": " + er.getMessage(), dialog);
+            }
         });
 
         return tables;
@@ -160,8 +227,7 @@ public class LibrarianUI {
     }
 
     private void actionTableListener(Class<?> ent, TableWrapper tw) {
-        DisplayTable dt = new DisplayTable(ent);
-        tw.changeTable(dt);
-        table = dt;
+        table = new DisplayTable(ent);
+        tw.changeTable(table);
     }
 }
