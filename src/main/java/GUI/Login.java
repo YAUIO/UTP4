@@ -65,7 +65,7 @@ public class Login {
             floginButton.addActionListener(f -> {
                 if (fpasswordField.getText() != null && emailField.getText() != null && phoneField.getText() != null && addressField.getText() != null) {
                     try {
-                        db.User user = db.Init.getEntityManager().createQuery("SELECT u FROM User u WHERE u.email = :email", db.User.class)
+                        db.Init.getEntityManager().createQuery("SELECT u FROM User u WHERE u.email = :email", db.User.class)
                                 .setParameter("email", emailField.getText())
                                 .getSingleResult();
                         JOptionPane.showMessageDialog(frame, "Such email already exists");
@@ -75,7 +75,7 @@ public class Login {
                         JOptionPane.showMessageDialog(null, "Welcome, " + fpasswordField.getText() + "! Make sure to write down your id: " + user.getId() + ", it will be required to log in");
                         login(user);
                     } catch (Exception ex) {
-                        JOptionPane.showMessageDialog(frame, ex.getMessage(),"Error",JOptionPane.ERROR_MESSAGE);
+                        new Error(ex, frame);
                     }
                 } else {
                     JOptionPane.showMessageDialog(frame, "One of the fields is empty");
@@ -100,16 +100,16 @@ public class Login {
                 frame.dispose();
                 login(user);
             } catch (NoResultException _) {
-                JOptionPane.showMessageDialog(frame, "Invalid username or id");
+                new Error("Invalid username or id", frame);
             } catch (Exception ex) {
-                JOptionPane.showMessageDialog(frame, ex.getMessage(),"Error",JOptionPane.ERROR_MESSAGE);
+                new Error(ex);
             }
         });
 
         frame.setVisible(true);
     }
 
-    private void login (db.User user) {
+    private void login(db.User user) {
         try {
             db.Librarian lib = db.Init.getEntityManager().createQuery("SELECT l FROM Librarian l WHERE l.user = :u", db.Librarian.class)
                     .setParameter("u", user)

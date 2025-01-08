@@ -24,6 +24,12 @@ public class User {
     public User() {
     }
 
+    @CopyConstructor
+    public User(User u) {
+        throw new RuntimeException("Can't copy a user -> email must be unique");
+    }
+
+    @FullArgsConstructor
     public User(String name, String email, String phoneNumber, String address) {
         this.name = name;
         this.email = email;

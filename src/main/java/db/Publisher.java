@@ -20,6 +20,18 @@ public class Publisher {
 
     public Publisher() {}
 
+    @CopyConstructor
+    public Publisher(Publisher p) {
+        name = p.name;
+        address = p.address;
+        phone = p.phone;
+        EntityManager em = Init.getEntityManager();
+        em.getTransaction().begin();
+        em.persist(this);
+        em.getTransaction().commit();
+    }
+
+    @FullArgsConstructor
     public Publisher(String name, String address, String phone) {
         this.name = name;
         this.address = address;

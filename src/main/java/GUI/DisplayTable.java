@@ -42,27 +42,34 @@ public class DisplayTable {
         update();
 
         table.addTableModelListener(e -> {
-            switch (e.getType()) {
-                case TableModelEvent.UPDATE -> {
-                    String value = (String) table.getDataVector().get(e.getLastRow()).get(e.getColumn());
-                    fields.keySet().stream()
-                            .filter(f -> f.getName().equals(header[e.getColumn()]))
-                            .forEach(f -> {
-                        try {
-                            System.out.println(fields.get(f).getName());
-                            fields.get(f).invoke(objects.get(e.getLastRow()), value);
-                        } catch (Exception ex) {
-                            System.out.println("Exception: " + ex.getClass().getName()+ " " + ex.getMessage());
-                        }
-                    });
-
-                }
-                default -> System.out.println(e.getType());
+            if (e.getType() == TableModelEvent.UPDATE) {
+                String value = (String) table.getDataVector().get(e.getLastRow()).get(e.getColumn());
+                fields.keySet().stream()
+                        .filter(f -> f.getName().equals(header[e.getColumn()]))
+                        .forEach(f -> {
+                            try {
+                                fields.get(f).invoke(objects.get(e.getLastRow()), value);
+                            } catch (Exception ex) {
+                                new Error(ex);
+                            }
+                        });
             }
         });
     }
 
-    private void update() {
+    public DefaultTableModel getTable() {
+        return table;
+    }
+
+    public String getHeader() {
+        StringBuilder ret = new StringBuilder();
+        Arrays.stream(header)
+                .filter(s -> !s.equalsIgnoreCase("id"))
+                .forEach(s -> ret.append("'").append(s).append("' "));
+        return ret.toString();
+    }
+
+    public void update() {
         ArrayList<StringBuilder> tsv = new ArrayList<>();
         tsv.add(headerLine);
         try {
@@ -79,15 +86,14 @@ public class DisplayTable {
                                         try {
                                             rowLine.append(f.get(o)).append(" ");
                                         } catch (Exception e) {
-                                            System.out.println("Error: " + e.getMessage());
+                                            new Error(e);
                                         }
                                     });
                         }
                         tsv.add(rowLine);
                     });
 
-        } catch (Exception _) {
-        }
+        } catch (Exception _) {}
 
         String[][] data = new String[tsv.size() - 1][fields.size()];
 

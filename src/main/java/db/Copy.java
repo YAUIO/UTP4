@@ -19,10 +19,22 @@ public class Copy {
     @Column(nullable = false)
     private String status;
 
+    @FullArgsConstructor
     public Copy(Book book, Integer copyNumber, String status) {
         this.book = book;
         this.copyNumber = copyNumber;
         this.status = status;
+        EntityManager em = Init.getEntityManager();
+        em.getTransaction().begin();
+        em.persist(this);
+        em.getTransaction().commit();
+    }
+
+    @CopyConstructor
+    public Copy(Copy c){
+        book = c.book;
+        copyNumber = c.copyNumber;
+        status = c.status;
         EntityManager em = Init.getEntityManager();
         em.getTransaction().begin();
         em.persist(this);

@@ -21,6 +21,19 @@ public class Librarian {
     @Column(nullable = false)
     private String position;
 
+    @CopyConstructor
+    public Librarian(Librarian l) {
+        user = l.user;
+        employmentDate = l.employmentDate;
+        position = l.position;
+
+        EntityManager em = Init.getEntityManager();
+        em.getTransaction().begin();
+        em.persist(this);
+        em.getTransaction().commit();
+    }
+
+    @FullArgsConstructor
     public Librarian(User user, Date employmentDate, String position) {
         this.user = user;
         this.employmentDate = employmentDate;

@@ -26,6 +26,34 @@ public class Book {
 
     public Book(){}
 
+    @FullArgsConstructor
+    public Book(String title, String author, String publisher, Integer publicationYear, String isbn) {
+        this.title = title;
+        this.author = author;
+        this.publisher = publisher;
+        this.publicationYear = publicationYear;
+        this.isbn = isbn;
+
+        EntityManager em = Init.getEntityManager();
+        em.getTransaction().begin();
+        em.persist(this);
+        em.getTransaction().commit();
+    }
+
+    @CopyConstructor
+    public Book(Book b) {
+        title = b.title;
+        author = b.author;
+        publisher = b.publisher;
+        publicationYear = b.publicationYear;
+        isbn = b.isbn;
+
+        EntityManager em = Init.getEntityManager();
+        em.getTransaction().begin();
+        em.persist(this);
+        em.getTransaction().commit();
+    }
+
     public void setAuthor(String author) {
         this.author = author;
         EntityManager em = Init.getEntityManager();

@@ -24,8 +24,8 @@ public class Borrowing {
 
     private Date returnDate;
 
-    public Borrowing(Integer id, User user, Book book, Date borrowDate, Date returnDate) {
-        this.id = id;
+    @FullArgsConstructor
+    public Borrowing(User user, Book book, Date borrowDate, Date returnDate) {
         this.user = user;
         this.book = book;
         this.borrowDate = borrowDate;
@@ -37,12 +37,24 @@ public class Borrowing {
         em.getTransaction().commit();
     }
 
-    public Borrowing(Integer id, User user, Book book, Date borrowDate) {
-        this.id = id;
+    public Borrowing(User user, Book book, Date borrowDate) {
         this.user = user;
         this.book = book;
         this.borrowDate = borrowDate;
         this.returnDate = null;
+
+        EntityManager em = Init.getEntityManager();
+        em.getTransaction().begin();
+        em.persist(this);
+        em.getTransaction().commit();
+    }
+
+    @CopyConstructor
+    public Borrowing(Borrowing b) {
+        user = b.user;
+        book = b.book;
+        borrowDate = b.borrowDate;
+        returnDate = b.returnDate;
 
         EntityManager em = Init.getEntityManager();
         em.getTransaction().begin();
