@@ -8,6 +8,7 @@ import javax.swing.table.DefaultTableModel;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.text.DateFormat;
 import java.util.*;
 
 public class DisplayTable {
@@ -17,6 +18,7 @@ public class DisplayTable {
     private final StringBuilder headerLine;
     private final String[] header;
     private final ArrayList<Object> objects;
+    private TableWrapper guiImpl;
 
     public DisplayTable(Class<?> entity) {
         this.entity = entity;
@@ -47,13 +49,43 @@ public class DisplayTable {
                         .filter(f -> f.getName().equals(header[e.getColumn()]))
                         .forEach(f -> {
                             try {
-                                fields.get(f).invoke(objects.get(e.getLastRow()), value);
+                                Object val = null;
+
+                                if (f.getType() != String.class && f.getType() != java.util.Date.class && !f.getType().isAnnotationPresent(Entity.class)) {
+                                    Optional<Method> res =
+                                            Arrays.stream(f.getType().getDeclaredMethods())
+                                                    .filter(m -> m.getParameterCount() == 1)
+                                                    .filter(m -> m.getParameterTypes()[0] == String.class)
+                                                    .filter(m -> m.getName().contains("value"))
+                                                    .findFirst();
+                                    if (res.isPresent()) {
+                                        val = f.getType().cast(res.get().invoke(null, value));
+                                    }
+                                } else if (f.getType().isAnnotationPresent(Entity.class)) {
+                                    val = db.Init.getEntityManager().createQuery("SELECT u FROM User u WHERE u.id = :id", db.User.class)
+                                            .setParameter("id", Integer.parseInt(value))
+                                            .getSingleResult();
+                                } else if (f.getType() == java.util.Date.class) { //that type is ruining my beautiful code. like why do you need DateFormat.getDateInstance().parse()
+                                    val = DateFormat.getDateInstance(DateFormat.SHORT).parse(value.replaceAll("-", "."));
+                                } else {
+                                    val = value;
+                                }
+
+                                fields.get(f).invoke(objects.get(e.getLastRow()), val);
                             } catch (Exception ex) {
+                                update();
+                                if (guiImpl != null) {
+                                    guiImpl.changeTable(this);
+                                }
                                 new Error(ex);
                             }
                         });
             }
         });
+    }
+
+    public void setGuiImpl(TableWrapper guiImpl) {
+        this.guiImpl = guiImpl;
     }
 
     public DefaultTableModel getTable() {
@@ -85,9 +117,9 @@ public class DisplayTable {
                                         try {
                                             if (f.getType().isAnnotationPresent(Entity.class)) {
                                                 Optional<Field> field =
-                                                Arrays.stream(f.get(o).getClass().getDeclaredFields())
-                                                        .filter(ff -> ff.getName().equals("id"))
-                                                        .findFirst();
+                                                        Arrays.stream(f.get(o).getClass().getDeclaredFields())
+                                                                .filter(ff -> ff.getName().equals("id"))
+                                                                .findFirst();
                                                 if (field.isPresent()) {
                                                     field.get().setAccessible(true);
                                                     rowLine.append(field.get().get(f.get(o))).append(" ");
@@ -107,7 +139,8 @@ public class DisplayTable {
                         tsv.add(rowLine);
                     });
 
-        } catch (Exception _) {}
+        } catch (Exception _) {
+        }
 
         String[][] data = new String[tsv.size() - 1][fields.size()];
 

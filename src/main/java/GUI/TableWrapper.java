@@ -30,6 +30,7 @@ public class TableWrapper extends JFrame {
 
     public void changeTable(DisplayTable table) {
         setVisible(false);
+        table.setGuiImpl(this);
         if (this.table != null) {
             remove(this.table);
         }
