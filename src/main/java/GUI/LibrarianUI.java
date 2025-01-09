@@ -4,6 +4,7 @@ import db.Annotations.CopyConstructor;
 import db.Annotations.FullArgsConstructor;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityManager;
 
 import javax.swing.*;
 import java.awt.*;
@@ -48,21 +49,9 @@ public class LibrarianUI {
         tables.add(create);
 
         duplicateWithNewId.addActionListener(e -> { //DuplicateRecordListener
-            JDialog dialog = new JDialog(frame, "Duplicate with new ID");
-            dialog.setLayout(new BorderLayout());
-            Dimension size = new Dimension(400, 200);
-            dialog.setSize(size);
-            dialog.setPreferredSize(size);
-            dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-            dialog.add(new JLabel("Type in ID to duplicate"), BorderLayout.NORTH);
-            JTextField jt = new JTextField();
-            dialog.add(jt, BorderLayout.CENTER);
-            JButton submit = new JButton("Submit");
-            dialog.add(submit, BorderLayout.SOUTH);
-            submit.addActionListener(_ -> {
                 try {
                     Object o = db.Init.getEntityManager().createQuery("SELECT o FROM " + table.getClassName() + " o WHERE o.id = :id", Class.forName(table.getClassName()))
-                            .setParameter("id", Integer.parseInt(jt.getText()))
+                            .setParameter("id", Integer.parseInt((String) table.getValue(table.getTable().getSelectedRow(),0)))
                             .getSingleResult();
 
                     Object[] uniqueFields =
@@ -84,11 +73,9 @@ public class LibrarianUI {
                                         throw new RuntimeException(ex);
                                     }
                                 });
-                        dialog.dispose();
                     } else {
-                        dialog.dispose();
                         try {
-                            JDialog jDialog = new JDialog(frame, "Duplicate with id: " + Integer.parseInt(jt.getText()));
+                            JDialog jDialog = new JDialog(frame, "Duplicate with id: " + Integer.parseInt((String) table.getValue(table.getTable().getSelectedRow(),0)));
                             Optional<Constructor<?>> searchResult =
                                     Arrays.stream(Class.forName(table.getClassName()).getDeclaredConstructors())
                                             .filter(c -> c.isAnnotationPresent(FullArgsConstructor.class))
@@ -111,6 +98,8 @@ public class LibrarianUI {
 
                                 JComponent[] entryFields = new JComponent[types.length];
 
+                                int listCount = 0;
+
                                 for (int i = 0; i < types.length; i++) {
                                     if (fields[i] == null) continue;
                                     Class<?> c = types[i];
@@ -120,6 +109,8 @@ public class LibrarianUI {
                                                     .getResultList().toArray();
 
                                             ScrollableList<Object> sel = new ScrollableList<>(new JList<>(arr));
+
+                                            listCount++;
 
                                             entryFields[i] = sel;
                                         } catch (Exception _) {}
@@ -151,6 +142,9 @@ public class LibrarianUI {
 
                                 jDialog.setLayout(new BorderLayout());
                                 Dimension sizeD = new Dimension(600 + (entryFields.length - 2) * 140, 400);
+                                if (listCount == 0) {
+                                    sizeD.setSize(sizeD.getWidth(), 160);
+                                }
                                 jDialog.setSize(sizeD);
                                 jDialog.setPreferredSize(sizeD);
                                 jDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
@@ -213,11 +207,11 @@ public class LibrarianUI {
                                         frame.changeTable(table);
                                     } catch (Exception exc) {
                                         if (exc.getCause() == null) {
-                                            new Error("Incorrect choice: " + exc.getClass().getName() + ": " + exc.getMessage(), dialog);
+                                            new Error("Incorrect choice: " + exc.getClass().getName() + ": " + exc.getMessage());
                                         } else if (exc.getCause().getCause() == null) {
-                                            new Error("Incorrect choice: " + exc.getCause().getClass().getName() + ": " + exc.getCause().getMessage(), dialog);
+                                            new Error("Incorrect choice: " + exc.getCause().getClass().getName() + ": " + exc.getCause().getMessage());
                                         } else {
-                                            new Error("Incorrect choice: " + exc.getCause().getCause().getClass().getName() + ": " + exc.getCause().getCause().getMessage(), dialog);
+                                            new Error("Incorrect choice: " + exc.getCause().getCause().getClass().getName() + ": " + exc.getCause().getCause().getMessage());
                                         }
                                     }
                                 });
@@ -232,16 +226,25 @@ public class LibrarianUI {
                     table = new DisplayTable(Class.forName(table.getClassName()));
                     frame.changeTable(table);
                 } catch (Exception exc) {
-                    new Error("Incorrect choice: " + exc.getClass().getName() + ": " + exc.getMessage(), dialog);
+                    new Error("Incorrect choice: " + exc.getClass().getName() + ": " + exc.getMessage());
                 }
-            });
-
-            dialog.pack();
-            dialog.setVisible(true);
         });
 
         delete.addActionListener(_ -> { //deleteRecordListener
-
+            Object o = null;
+            try {
+                EntityManager em = db.Init.getEntityManager();
+                em.getTransaction().begin();
+                o = em.createQuery("SELECT o FROM " + table.getClassName() + " o WHERE o.id = :id", Class.forName(table.getClassName()))
+                        .setParameter("id", Integer.parseInt((String) table.getValue(table.getTable().getSelectedRow(),0)))
+                        .getSingleResult();
+                em.remove(em.merge(o));
+                em.getTransaction().commit();
+                table = new DisplayTable(Class.forName(table.getClassName()));
+                frame.changeTable(table);
+            } catch (Exception e) {
+                new Error(e);
+            }
         });
 
         create.addActionListener(_ -> { //CreateRecordListener
