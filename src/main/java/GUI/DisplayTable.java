@@ -1,5 +1,6 @@
 package GUI;
 
+import db.Init;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 
@@ -11,6 +12,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.text.DateFormat;
 import java.util.*;
+import java.util.function.Predicate;
 
 public class DisplayTable {
     private final Class<?> entity;
@@ -21,11 +23,13 @@ public class DisplayTable {
     private final String[] header;
     private final ArrayList<Object> objects;
     private TableWrapper guiImpl;
+    private final Predicate<Object> pred;
 
-    public DisplayTable(Class<?> entity) {
+    public DisplayTable(Class<?> entity, Predicate<Object> pred) {
         this.entity = entity;
         this.fields = new HashMap<>();
         this.objects = new ArrayList<>();
+        this.pred = pred;
 
         headerLine = new StringBuilder();
 
@@ -53,7 +57,7 @@ public class DisplayTable {
                             try {
                                 Object val = null;
 
-                                if (f.getType() != String.class && f.getType() != java.util.Date.class && !f.getType().isAnnotationPresent(Entity.class)) {
+                                if (f.getType() != String.class && f.getType() != Date.class && !f.getType().isAnnotationPresent(Entity.class)) {
                                     Optional<Method> res =
                                             Arrays.stream(f.getType().getDeclaredMethods())
                                                     .filter(m -> m.getParameterCount() == 1)
@@ -64,10 +68,10 @@ public class DisplayTable {
                                         val = f.getType().cast(res.get().invoke(null, value));
                                     }
                                 } else if (f.getType().isAnnotationPresent(Entity.class)) {
-                                    val = db.Init.getEntityManager().createQuery("SELECT u FROM " + f.getType().getName().substring(f.getType().getName().indexOf('.') + 1) + " u WHERE u.id = :id", f.getType())
+                                    val = Init.getEntityManager().createQuery("SELECT u FROM " + f.getType().getName().substring(f.getType().getName().indexOf('.') + 1) + " u WHERE u.id = :id", f.getType())
                                             .setParameter("id", Integer.parseInt(value))
                                             .getSingleResult();
-                                } else if (f.getType() == java.util.Date.class) { //that type is ruining my beautiful code. like why do you need DateFormat.getDateInstance().parse()
+                                } else if (f.getType() == Date.class) { //that type is ruining my beautiful code. like why do you need DateFormat.getDateInstance().parse()
                                     val = DateFormat.getDateInstance(DateFormat.SHORT).parse(value.replaceAll("-", "."));
                                 } else {
                                     val = value;
@@ -84,6 +88,10 @@ public class DisplayTable {
                         });
             }
         });
+    }
+
+    public DisplayTable(Class<?> entity) {
+        this(entity, o -> true);
     }
 
     public void setGuiImpl(TableWrapper guiImpl) {
@@ -110,8 +118,9 @@ public class DisplayTable {
         ArrayList<StringBuilder> tsv = new ArrayList<>();
         tsv.add(headerLine);
         try {
-            db.Init.getEntityManager().createQuery("SELECT o FROM " + entity.getName() + " o", entity)
+            Init.getEntityManager().createQuery("SELECT o FROM " + entity.getName() + " o", entity)
                     .getResultStream()
+                    .filter(pred)
                     .forEach(o -> {
                         StringBuilder rowLine = new StringBuilder();
                         objects.add(o);
@@ -132,7 +141,7 @@ public class DisplayTable {
                                                 } else {
                                                     throw new RuntimeException("No id field in Entity class");
                                                 }
-                                            } else if (f.getType() == java.util.Date.class) {
+                                            } else if (f.getType() == Date.class) {
                                                 rowLine.append(f.get(o).toString().split("\\s+")[0]).append(" ");
                                             } else {
                                                 rowLine.append(f.get(o)).append(" ");
@@ -160,7 +169,7 @@ public class DisplayTable {
         table = new DefaultTableModel(data, tsv.getFirst().toString().split("\\s+")) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                Object val = db.Init.getEntityManager().createQuery("SELECT u FROM " + entity.getName().substring(entity.getName().indexOf('.') + 1) + " u WHERE u.id = :id", entity)
+                Object val = Init.getEntityManager().createQuery("SELECT u FROM " + entity.getName().substring(entity.getName().indexOf('.') + 1) + " u WHERE u.id = :id", entity)
                         .setParameter("id", Integer.parseInt((String) table.getDataVector().get(row).getFirst()))
                         .getSingleResult();
 
