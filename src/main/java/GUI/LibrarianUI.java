@@ -2,6 +2,7 @@ package GUI;
 
 import db.Annotations.CopyConstructor;
 import db.Annotations.FullArgsConstructor;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 
 import javax.swing.*;
@@ -10,10 +11,12 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.text.DateFormat;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.regex.Pattern;
 
 public class LibrarianUI {
     private final db.Librarian user;
@@ -44,34 +47,190 @@ public class LibrarianUI {
         tables.add(delete);
         tables.add(create);
 
-        duplicateWithNewId.addActionListener(e -> {
+        duplicateWithNewId.addActionListener(e -> { //DuplicateRecordListener
             JDialog dialog = new JDialog(frame, "Duplicate with new ID");
-            dialog.setLayout(new BorderLayout(3, 1));
+            dialog.setLayout(new BorderLayout());
             Dimension size = new Dimension(400, 200);
             dialog.setSize(size);
             dialog.setPreferredSize(size);
             dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-            dialog.add(new JLabel("Type in ID to duplicate"));
+            dialog.add(new JLabel("Type in ID to duplicate"), BorderLayout.NORTH);
             JTextField jt = new JTextField();
-            dialog.add(jt);
+            dialog.add(jt, BorderLayout.CENTER);
             JButton submit = new JButton("Submit");
-            dialog.add(submit);
+            dialog.add(submit, BorderLayout.SOUTH);
             submit.addActionListener(_ -> {
                 try {
                     Object o = db.Init.getEntityManager().createQuery("SELECT o FROM " + table.getClassName() + " o WHERE o.id = :id", Class.forName(table.getClassName()))
                             .setParameter("id", Integer.parseInt(jt.getText()))
                             .getSingleResult();
 
-                    Arrays.stream(Class.forName(table.getClassName()).getDeclaredConstructors())
-                            .filter(c -> c.isAnnotationPresent(CopyConstructor.class))
-                            .forEach(c -> {
-                                try {
-                                    c.newInstance(o);
-                                    table.update();
-                                } catch (Exception ex) {
-                                    throw new RuntimeException(ex);
+                    Object[] uniqueFields =
+                            Arrays.stream(o.getClass().getDeclaredFields())
+                                    .filter(f -> !f.getName().equals("id"))
+                                    .filter(f -> Arrays.stream(f.getDeclaredAnnotations())
+                                            .filter(a -> a.annotationType() == Column.class)
+                                            .anyMatch(a -> ((Column) a).unique()))
+                                    .toArray();
+
+                    if (uniqueFields.length == 0) {
+                        Arrays.stream(Class.forName(table.getClassName()).getDeclaredConstructors())
+                                .filter(c -> c.isAnnotationPresent(CopyConstructor.class))
+                                .forEach(c -> {
+                                    try {
+                                        c.newInstance(o);
+                                        table.update();
+                                    } catch (Exception ex) {
+                                        throw new RuntimeException(ex);
+                                    }
+                                });
+                        dialog.dispose();
+                    } else {
+                        dialog.dispose();
+                        try {
+                            JDialog jDialog = new JDialog(frame, "Duplicate with id: " + Integer.parseInt(jt.getText()));
+                            Optional<Constructor<?>> searchResult =
+                                    Arrays.stream(Class.forName(table.getClassName()).getDeclaredConstructors())
+                                            .filter(c -> c.isAnnotationPresent(FullArgsConstructor.class))
+                                            .findFirst();
+
+                            if (searchResult.isPresent()) {
+                                Field[] fields = new Field[o.getClass().getDeclaredFields().length - 1];
+
+                                for (int i = 0; i < fields.length; i++) {
+                                    int tempI = i;
+                                    Optional<Object> search = Arrays.stream(uniqueFields)
+                                            .filter(f -> f.equals(o.getClass().getDeclaredFields()[tempI + 1]))
+                                            .findFirst();
+                                    fields[i] = (Field) search.orElse(null);
                                 }
-                            });
+
+                                Constructor<?> constructor = searchResult.get();
+
+                                Class<?>[] types = constructor.getParameterTypes();
+
+                                JComponent[] entryFields = new JComponent[types.length];
+
+                                for (int i = 0; i < types.length; i++) {
+                                    if (fields[i] == null) continue;
+                                    Class<?> c = types[i];
+                                    if (c.isAnnotationPresent(Entity.class)) {
+                                        try {
+                                            Object[] arr = db.Init.getEntityManager().createQuery("SELECT o FROM " + c.getName().substring(c.getName().indexOf('.') + 1) + " o", c)
+                                                    .getResultList().toArray();
+
+                                            ScrollableList<Object> sel = new ScrollableList<>(new JList<>(arr));
+
+                                            entryFields[i] = sel;
+                                        } catch (Exception _) {}
+                                    } else {
+                                        entryFields[i] = new JTextField();
+                                    }
+                                }
+
+                                JPanel selection = new JPanel(new BorderLayout());
+
+                                JPanel fr = new JPanel(new GridLayout(1, fields.length));
+
+                                JPanel sr = new JPanel(new GridLayout(1, fields.length));
+
+                                for (Field field : fields) {
+                                    if (field != null) {
+                                        fr.add(new JLabel(field.getName()));
+                                    }
+                                }
+
+                                for (JComponent jc : entryFields) {
+                                    if (jc != null) {
+                                        sr.add(jc);
+                                    }
+                                }
+
+                                selection.add(fr, BorderLayout.NORTH);
+                                selection.add(sr, BorderLayout.CENTER);
+
+                                jDialog.setLayout(new BorderLayout());
+                                Dimension sizeD = new Dimension(600 + (entryFields.length - 2) * 140, 400);
+                                jDialog.setSize(sizeD);
+                                jDialog.setPreferredSize(sizeD);
+                                jDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+                                jDialog.add(new JLabel("Type in unique arguments to duplicate a record"), BorderLayout.NORTH);
+                                jDialog.add(selection, BorderLayout.CENTER);
+                                JButton submitD = new JButton("Submit");
+                                jDialog.add(submitD, BorderLayout.SOUTH);
+                                submitD.addActionListener(_ -> {
+                                    try {
+                                        String[] arg = new String[fields.length];
+                                        Object[] args = new Object[fields.length];
+                                        int c = 0;
+
+                                        for (JComponent j : entryFields) {
+                                            if (j == null) {
+                                                Field f = o.getClass().getDeclaredFields()[c + 1];
+                                                f.setAccessible(true);
+                                                args[c] = f.get(o);
+                                                arg[c] = "set";
+                                                c++;
+                                                continue;
+                                            }
+                                            if (j.getClass() == JTextField.class) {
+                                                arg[c] = ((JTextField) j).getText();
+                                            } else if (j.getClass() == ScrollableList.class) {
+                                                arg[c] = "set";
+                                                args[c] = ((ScrollableList<?>) j).getList().getSelectedValue();
+                                            }
+                                            c++;
+                                        }
+
+                                        for (int i = 0; i < args.length; i++) {
+                                            if (arg[i] != null && arg[i].equals("set")) continue;
+
+                                            if (types[i] != String.class && types[i] != java.util.Date.class) {
+                                                Optional<Method> res =
+                                                        Arrays.stream(types[i].getDeclaredMethods())
+                                                                .filter(m -> m.getParameterCount() == 1)
+                                                                .filter(m -> m.getParameterTypes()[0] == String.class)
+                                                                .filter(m -> m.getName().contains("value"))
+                                                                .findFirst();
+                                                if (res.isPresent()) {
+                                                    args[i] = types[i].cast(res.get().invoke(null, arg[i]));
+                                                }
+                                            } else if (types[i] == java.util.Date.class) { //that type is ruining my beautiful code. like why do you need DateFormat.getDateInstance().parse()
+                                                args[i] = DateFormat.getDateInstance(DateFormat.SHORT).parse(arg[i]);
+                                            } else {
+                                                args[i] = arg[i];
+                                            }
+                                        }
+
+                                        System.out.println("Creating new object: " + Arrays.toString(args));
+
+                                        constructor.newInstance(args);
+
+                                        jDialog.dispose();
+
+                                        table = new DisplayTable(Class.forName(table.getClassName()));
+
+                                        frame.changeTable(table);
+                                    } catch (Exception exc) {
+                                        if (exc.getCause() == null) {
+                                            new Error("Incorrect choice: " + exc.getClass().getName() + ": " + exc.getMessage(), dialog);
+                                        } else if (exc.getCause().getCause() == null) {
+                                            new Error("Incorrect choice: " + exc.getCause().getClass().getName() + ": " + exc.getCause().getMessage(), dialog);
+                                        } else {
+                                            new Error("Incorrect choice: " + exc.getCause().getCause().getClass().getName() + ": " + exc.getCause().getCause().getMessage(), dialog);
+                                        }
+                                    }
+                                });
+
+                                jDialog.pack();
+                                jDialog.setVisible(true);
+                            }
+                        } catch (Exception excz) {
+                            new Error("Incorrect choice: " + excz.getClass().getName() + ": " + excz.getMessage());
+                        }
+                    }
+                    table = new DisplayTable(Class.forName(table.getClassName()));
+                    frame.changeTable(table);
                 } catch (Exception exc) {
                     new Error("Incorrect choice: " + exc.getClass().getName() + ": " + exc.getMessage(), dialog);
                 }
@@ -81,9 +240,11 @@ public class LibrarianUI {
             dialog.setVisible(true);
         });
 
-        //delete.addActionListener();
+        delete.addActionListener(_ -> { //deleteRecordListener
 
-        create.addActionListener(e -> {
+        });
+
+        create.addActionListener(_ -> { //CreateRecordListener
             JDialog dialog = new JDialog(frame, "Create");
             try {
                 Optional<Constructor<?>> searchResult =
@@ -108,7 +269,8 @@ public class LibrarianUI {
                                 ScrollableList<Object> sel = new ScrollableList<>(new JList<>(arr));
 
                                 entryFields.add(sel);
-                            } catch (Exception _) {}
+                            } catch (Exception _) {
+                            }
                         } else {
                             entryFields.add(new JTextField());
                         }
@@ -132,11 +294,11 @@ public class LibrarianUI {
                     selection.add(sr, BorderLayout.CENTER);
 
                     dialog.setLayout(new BorderLayout());
-                    Dimension size = new Dimension(600 + (types.length-2)*140, 400);
+                    Dimension size = new Dimension(600 + (types.length - 2) * 140, 400);
                     dialog.setSize(size);
                     dialog.setPreferredSize(size);
                     dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-                    dialog.add(new JLabel("Type in arguments to create new record [HINT - DATE FORMAT YYYY-MM-DD]"), BorderLayout.NORTH);
+                    dialog.add(new JLabel("Type in arguments to create new record"), BorderLayout.NORTH);
                     dialog.add(selection, BorderLayout.CENTER);
                     JButton submit = new JButton("Submit");
                     dialog.add(submit, BorderLayout.SOUTH);
@@ -189,7 +351,6 @@ public class LibrarianUI {
                                 new Error("Incorrect choice: " + exc.getCause().getClass().getName() + ": " + exc.getCause().getMessage(), dialog);
                             } else {
                                 new Error("Incorrect choice: " + exc.getCause().getCause().getClass().getName() + ": " + exc.getCause().getCause().getMessage(), dialog);
-
                             }
                         }
                     });
