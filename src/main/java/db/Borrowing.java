@@ -24,6 +24,7 @@ public class Borrowing {
     @Column(nullable = false)
     private Date borrowDate;
 
+    @Column()
     private Date returnDate;
 
     @FullArgsConstructor
