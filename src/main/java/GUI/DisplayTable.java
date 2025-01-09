@@ -24,6 +24,7 @@ public class DisplayTable {
     private final ArrayList<Object> objects;
     private TableWrapper guiImpl;
     private final Predicate<Object> pred;
+    private boolean editable;
 
     public DisplayTable(Class<?> entity, Predicate<Object> pred) {
         this.entity = entity;
@@ -161,6 +162,16 @@ public class DisplayTable {
 
         for (int i = 1; i < tsv.size(); i++) {
             String[] val = tsv.get(i).toString().trim().split("\\s+");
+            if (val.length > data[i - 1].length) { //handling for spaces
+                String[] cVal = val;
+                val = new String[fields.size()];
+                System.arraycopy(cVal, 0, val, 0, fields.size());
+                StringBuilder addr = new StringBuilder();
+                for (int l = fields.size() - 1; l < cVal.length; l++) {
+                    addr.append(cVal[l]).append(" ");
+                }
+                val[fields.size()-1] = addr.toString();
+            }
             for (int f = 0; f < val.length; f++) {
                 data[i - 1][f] = val[f];
             }
@@ -169,18 +180,26 @@ public class DisplayTable {
         table = new DefaultTableModel(data, tsv.getFirst().toString().split("\\s+")) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                Object val = Init.getEntityManager().createQuery("SELECT u FROM " + entity.getName().substring(entity.getName().indexOf('.') + 1) + " u WHERE u.id = :id", entity)
-                        .setParameter("id", Integer.parseInt((String) table.getDataVector().get(row).getFirst()))
-                        .getSingleResult();
+                if (editable) {
+                    Object val = Init.getEntityManager().createQuery("SELECT u FROM " + entity.getName().substring(entity.getName().indexOf('.') + 1) + " u WHERE u.id = :id", entity)
+                            .setParameter("id", Integer.parseInt((String) table.getDataVector().get(row).getFirst()))
+                            .getSingleResult();
 
-                return Arrays.stream(val.getClass().getDeclaredFields())
-                        .filter(f -> f.getName().equals(header[column]))
-                        .anyMatch(f -> Arrays.stream(f.getDeclaredAnnotations())
-                                .filter(a -> a.annotationType() == Column.class)
-                                .anyMatch(a -> ((Column) a).updatable()));
+                    return Arrays.stream(val.getClass().getDeclaredFields())
+                            .filter(f -> f.getName().equals(header[column]))
+                            .anyMatch(f -> Arrays.stream(f.getDeclaredAnnotations())
+                                    .filter(a -> a.annotationType() == Column.class)
+                                    .anyMatch(a -> ((Column) a).updatable()));
+                } else {
+                    return false;
+                }
             }
         };
         jTable = new JTable(table);
+    }
+
+    public void setEditable(boolean editable) {
+        this.editable = editable;
     }
 
     public JScrollPane get() {

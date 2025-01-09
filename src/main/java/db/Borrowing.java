@@ -67,6 +67,10 @@ public class Borrowing {
 
     public Borrowing(){}
 
+    public Integer getId() {
+        return id;
+    }
+
     public void setBook(Book book) {
         this.book = book;
         EntityManager em = Init.getEntityManager();

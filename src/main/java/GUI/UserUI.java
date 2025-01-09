@@ -1,36 +1,110 @@
 package GUI;
 
+import db.Book;
+import db.Borrowing;
+import db.Init;
+
 import javax.swing.*;
-import java.awt.*;
+import java.lang.reflect.Field;
+import java.util.*;
 
 public class UserUI {
     private final db.User user;
+    private DisplayTable table;
+    private final TableWrapper frame;
+    private boolean isFiltered;
 
     UserUI(db.User user) {
         this.user = user;
 
-        JFrame frame = new JFrame("User " + user.getId() + "  Dashboard");
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(600, 400);
-        frame.setLayout(new BorderLayout());
+        frame = new TableWrapper();
 
-        JPanel panel = new JPanel();
-        panel.setLayout(new GridLayout(3, 1, 10, 10));
+        frame.setEditable(false);
 
-        JButton viewAllBooksButton = new JButton("View All Books");
-        JButton viewAvailableBooksButton = new JButton("View Available Books");
-        JButton viewBorrowingHistoryButton = new JButton("View Borrowing History");
+        JMenuBar jmb = new JMenuBar();
 
-        panel.add(viewAllBooksButton);
-        panel.add(viewAvailableBooksButton);
-        panel.add(viewBorrowingHistoryButton);
+        jmb.add(getTableChooser(frame));
 
-        frame.add(panel, BorderLayout.CENTER);
+        jmb.add(getFilterChooser());
 
-        viewAllBooksButton.addActionListener(e -> JOptionPane.showMessageDialog(frame, "View All Books clicked"));
-        viewAvailableBooksButton.addActionListener(e -> JOptionPane.showMessageDialog(frame, "View Available Books clicked"));
-        viewBorrowingHistoryButton.addActionListener(e -> JOptionPane.showMessageDialog(frame, "View Borrowing History clicked"));
+        frame.setJMenuBar(jmb);
+    }
 
-        frame.setVisible(true);
+    private JMenu getFilterChooser() {
+        JMenu tables = new JMenu("Filter");
+        JMenuItem available = new JMenuItem("Available");
+
+        tables.add(available);
+
+        available.addActionListener(e -> {
+            if (table.getClassName().equals(Book.class.getName()) && !isFiltered) {
+                table = new DisplayTable(Book.class, book -> {
+                    Optional<Field> fs =
+                            Arrays.stream(book.getClass().getDeclaredFields())
+                                    .filter(f -> f.getName().equals("id"))
+                                    .findFirst();
+
+                    if (fs.isPresent()) {
+                        try {
+                            fs.get().setAccessible(true);
+                            Integer id = (Integer) fs.get().get(book);
+
+                            List<?> copies =
+                                    Init.getEntityManager()
+                                            .createQuery("SELECT c FROM Copy c WHERE c.book.id = :id", db.Copy.class)
+                                            .setParameter("id", id)
+                                            .getResultList();
+
+                            List<?> unReturnedBorrowings =
+                                    Init.getEntityManager().createQuery("SELECT o FROM Borrowing o WHERE o.book.id = :id AND (o.returnDate = null OR o.returnDate > :date)", db.Borrowing.class)
+                                            .setParameter("id", id)
+                                            .setParameter("date", new Date())
+                                            .getResultList();
+
+                            return unReturnedBorrowings.size() < copies.size();
+                        } catch (Exception ex) {
+                            new Error(ex);
+                        }
+                    }
+                    return false;
+                });
+                frame.changeTable(table);
+                isFiltered = !isFiltered;
+            } else if (table.getClassName().equals(Book.class.getName())) {
+                table = new DisplayTable(Book.class);
+                frame.changeTable(table);
+                isFiltered = !isFiltered;
+            }
+        });
+
+        return tables;
+    }
+
+    private JMenu getTableChooser(TableWrapper frame) {
+        JMenu tables = new JMenu("Data");
+        JMenuItem books = new JMenuItem("Books");
+        JMenuItem borrowings = new JMenuItem("Borrowings");
+
+        tables.add(books);
+        tables.add(borrowings);
+
+        books.addActionListener(e -> actionTableListener(db.Book.class, frame));
+        borrowings.addActionListener(e -> {
+            table = new DisplayTable(db.Borrowing.class, borrowing -> {
+                return
+                Init.getEntityManager().createQuery("SELECT o FROM Borrowing o WHERE o.user.id = :id", db.Borrowing.class)
+                        .setParameter("id", this.user.getId())
+                        .getResultStream()
+                        .anyMatch(b -> Objects.equals(b.getId(), ((Borrowing) borrowing).getId()));
+            });
+            frame.changeTable(table);
+        });
+
+        return tables;
+    }
+
+    private void actionTableListener(Class<?> ent, TableWrapper tw) {
+        table = new DisplayTable(ent);
+        tw.changeTable(table);
     }
 }
