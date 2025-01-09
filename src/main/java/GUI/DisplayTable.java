@@ -1,5 +1,6 @@
 package GUI;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 
 import javax.swing.*;
@@ -62,7 +63,7 @@ public class DisplayTable {
                                         val = f.getType().cast(res.get().invoke(null, value));
                                     }
                                 } else if (f.getType().isAnnotationPresent(Entity.class)) {
-                                    val = db.Init.getEntityManager().createQuery("SELECT u FROM User u WHERE u.id = :id", db.User.class)
+                                    val = db.Init.getEntityManager().createQuery("SELECT u FROM " + f.getType().getName().substring(f.getType().getName().indexOf('.') + 1) + " u WHERE u.id = :id", f.getType())
                                             .setParameter("id", Integer.parseInt(value))
                                             .getSingleResult();
                                 } else if (f.getType() == java.util.Date.class) { //that type is ruining my beautiful code. like why do you need DateFormat.getDateInstance().parse()
@@ -146,7 +147,6 @@ public class DisplayTable {
 
         for (int i = 1; i < tsv.size(); i++) {
             String[] val = tsv.get(i).toString().trim().split("\\s+");
-            System.out.println(Arrays.toString(val));
             for (int f = 0; f < val.length; f++) {
                 data[i - 1][f] = val[f];
             }
@@ -155,7 +155,15 @@ public class DisplayTable {
         table = new DefaultTableModel(data, tsv.getFirst().toString().split("\\s+")) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return !header[column].equals("id");
+                Object val = db.Init.getEntityManager().createQuery("SELECT u FROM " + entity.getName().substring(entity.getName().indexOf('.') + 1) + " u WHERE u.id = :id", entity)
+                        .setParameter("id", Integer.parseInt((String) table.getDataVector().get(row).getFirst()))
+                        .getSingleResult();
+
+                return Arrays.stream(val.getClass().getDeclaredFields())
+                        .filter(f -> f.getName().equals(header[column]))
+                        .anyMatch(f -> Arrays.stream(f.getDeclaredAnnotations())
+                                .filter(a -> a.annotationType() == Column.class)
+                                .anyMatch(a -> ((Column) a).updatable()));
             }
         };
     }
