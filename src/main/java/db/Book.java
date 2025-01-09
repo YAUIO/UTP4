@@ -60,7 +60,7 @@ public class Book {
         this.author = author;
         EntityManager em = Init.getEntityManager();
         em.getTransaction().begin();
-        em.persist(this);
+        em.merge(this);
         em.getTransaction().commit();
     }
 
@@ -68,7 +68,7 @@ public class Book {
         this.isbn = isbn;
         EntityManager em = Init.getEntityManager();
         em.getTransaction().begin();
-        em.persist(this);
+        em.merge(this);
         em.getTransaction().commit();
     }
 
@@ -76,7 +76,7 @@ public class Book {
         this.publicationYear = publicationYear;
         EntityManager em = Init.getEntityManager();
         em.getTransaction().begin();
-        em.persist(this);
+        em.merge(this);
         em.getTransaction().commit();
     }
 
@@ -84,7 +84,7 @@ public class Book {
         this.publisher = publisher;
         EntityManager em = Init.getEntityManager();
         em.getTransaction().begin();
-        em.persist(this);
+        em.merge(this);
         em.getTransaction().commit();
     }
 
@@ -92,7 +92,7 @@ public class Book {
         this.title = title;
         EntityManager em = Init.getEntityManager();
         em.getTransaction().begin();
-        em.persist(this);
+        em.merge(this);
         em.getTransaction().commit();
     }
 
