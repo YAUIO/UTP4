@@ -16,6 +16,7 @@ public class DisplayTable {
     private final Class<?> entity;
     private final HashMap<Field, Method> fields;
     private DefaultTableModel table;
+    private JTable jTable;
     private final StringBuilder headerLine;
     private final String[] header;
     private final ArrayList<Object> objects;
@@ -89,8 +90,12 @@ public class DisplayTable {
         this.guiImpl = guiImpl;
     }
 
-    public DefaultTableModel getTable() {
-        return table;
+    public JTable getTable() {
+        return jTable;
+    }
+
+    public Object getValue(int row, int column) {
+        return table.getValueAt(row, column);
     }
 
     public String getHeader() {
@@ -166,11 +171,11 @@ public class DisplayTable {
                                 .anyMatch(a -> ((Column) a).updatable()));
             }
         };
+        jTable = new JTable(table);
     }
 
     public JScrollPane get() {
-        JTable tableView = new JTable(table);
-        return new JScrollPane(tableView);
+        return new JScrollPane(jTable);
     }
 
     public String getClassName() {
