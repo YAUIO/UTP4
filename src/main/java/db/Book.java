@@ -56,6 +56,10 @@ public class Book {
         em.getTransaction().commit();
     }
 
+    public Integer getId() {
+        return id;
+    }
+
     public void setAuthor(String author) {
         this.author = author;
         EntityManager em = Init.getEntityManager();
