@@ -1,6 +1,5 @@
 package GUI;
 
-import db.Librarian;
 import db.User;
 import jakarta.persistence.NoResultException;
 

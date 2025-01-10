@@ -4,8 +4,8 @@ import java.time.Instant;
 public class Main {
     public static void main(String[] args) {
         if (args.length >= 3 && args.length <= 4) {
-            db.User user = null;
-            db.Librarian lb = null;
+            db.User user;
+            db.Librarian lb;
             try {
                 user = db.Init.getEntityManager().createQuery("SELECT u FROM User u WHERE u.id = :id AND u.name = :name", db.User.class)
                         .setParameter("id", args[0])
