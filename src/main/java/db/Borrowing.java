@@ -5,6 +5,7 @@ import db.Annotations.FullArgsConstructor;
 import jakarta.persistence.*;
 
 import java.util.Date;
+import java.util.Objects;
 
 @Entity
 @Table(name = "Borrowings")
@@ -110,5 +111,18 @@ public class Borrowing {
                 ", book=" + book +
                 ", borrowDate=" + borrowDate +
                 ", returnDate=" + returnDate;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o.getClass() == this.getClass()) {
+            return this.hashCode() == o.hashCode();
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, user, book, borrowDate, returnDate);
     }
 }

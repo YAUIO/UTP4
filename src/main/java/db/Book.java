@@ -4,6 +4,8 @@ import db.Annotations.CopyConstructor;
 import db.Annotations.FullArgsConstructor;
 import jakarta.persistence.*;
 
+import java.util.Objects;
+
 @Entity
 @Table(name = "Books")
 public class Book {
@@ -108,5 +110,18 @@ public class Book {
                 ", publisher='" + publisher + '\'' +
                 ", publicationYear=" + publicationYear +
                 ", isbn='" + isbn + '\'';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o.getClass() == this.getClass()) {
+            return this.hashCode() == o.hashCode();
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, title, author, publisher, publicationYear, isbn);
     }
 }
