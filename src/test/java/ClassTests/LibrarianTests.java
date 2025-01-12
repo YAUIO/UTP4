@@ -18,6 +18,7 @@ public class LibrarianTests {
 
     @BeforeAll
     public static void before() {
+        db.Init.setDB("LibraryManagementTestUnit");
         db.Init.getEntityManager();
         u = Utils.getUser();
     }

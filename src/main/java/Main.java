@@ -3,6 +3,7 @@ import java.time.Instant;
 
 public class Main {
     public static void main(String[] args) {
+        db.Init.setDB("LibraryManagement");
         if (args.length >= 3 && args.length <= 4) {
             db.User user;
             db.Librarian lb;
