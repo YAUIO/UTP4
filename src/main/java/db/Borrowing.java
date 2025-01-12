@@ -19,8 +19,8 @@ public class Borrowing {
     private User user;
 
     @ManyToOne
-    @JoinColumn(name = "book_id", nullable = false)
-    private Book book;
+    @JoinColumn(name = "copy_id", nullable = false)
+    private Copy copy;
 
     @Column(nullable = false)
     private Date borrowDate;
@@ -29,9 +29,9 @@ public class Borrowing {
     private Date returnDate;
 
     @FullArgsConstructor
-    public Borrowing(User user, Book book, Date borrowDate, Date returnDate) {
+    public Borrowing(User user, Copy book, Date borrowDate, Date returnDate) {
         this.user = user;
-        this.book = book;
+        this.copy = book;
         this.borrowDate = borrowDate;
         this.returnDate = returnDate;
 
@@ -41,9 +41,9 @@ public class Borrowing {
         em.getTransaction().commit();
     }
 
-    public Borrowing(User user, Book book, Date borrowDate) {
+    public Borrowing(User user, Copy book, Date borrowDate) {
         this.user = user;
-        this.book = book;
+        this.copy = book;
         this.borrowDate = borrowDate;
         this.returnDate = null;
 
@@ -56,7 +56,7 @@ public class Borrowing {
     @CopyConstructor
     public Borrowing(Borrowing b) {
         user = b.user;
-        book = b.book;
+        copy = b.copy;
         borrowDate = b.borrowDate;
         returnDate = b.returnDate;
 
@@ -72,8 +72,8 @@ public class Borrowing {
         return id;
     }
 
-    public void setBook(Book book) {
-        this.book = book;
+    public void setCopy(Copy book) {
+        this.copy = book;
         EntityManager em = Init.getEntityManager();
         em.getTransaction().begin();
         em.merge(this);
@@ -108,7 +108,7 @@ public class Borrowing {
     public String toString() {
         return "id=" + id +
                 ", user=" + user +
-                ", book=" + book +
+                ", book=" + copy +
                 ", borrowDate=" + borrowDate +
                 ", returnDate=" + returnDate;
     }
@@ -123,6 +123,6 @@ public class Borrowing {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, user, book, borrowDate, returnDate);
+        return Objects.hash(id, user, copy, borrowDate, returnDate);
     }
 }
