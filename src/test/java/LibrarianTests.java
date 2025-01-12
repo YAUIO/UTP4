@@ -26,7 +26,6 @@ public class LibrarianTests {
             try {
                 EntityManager em = db.Init.getEntityManager();
                 em.getTransaction().begin();
-                em.remove(em.merge(b));
                 em.remove(em.merge(u));
                 em.getTransaction().commit();
             } catch (Exception _) {}

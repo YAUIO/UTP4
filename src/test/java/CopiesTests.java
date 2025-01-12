@@ -28,10 +28,11 @@ public class CopiesTests {
             try {
                 EntityManager em = db.Init.getEntityManager();
                 em.getTransaction().begin();
-                em.remove(em.merge(b));
                 em.remove(em.merge(book));
                 em.getTransaction().commit();
-            } catch (Exception _) {}
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 

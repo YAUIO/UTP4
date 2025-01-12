@@ -24,7 +24,6 @@ public class UserTests {
             try {
                 EntityManager em = db.Init.getEntityManager();
                 em.getTransaction().begin();
-                em.remove(em.merge(user));
                 em.getTransaction().commit();
             } catch (Exception _) {}
         }
@@ -134,8 +133,8 @@ public class UserTests {
 
         EntityManager em = db.Init.getEntityManager();
         em.getTransaction().begin();
-        em.remove(em.merge(c));
         em.remove(em.merge(b));
+        em.remove(em.merge(c));
         em.remove(em.merge(book));
         em.getTransaction().commit();
 
