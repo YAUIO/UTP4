@@ -1,8 +1,8 @@
 package GUI;
 
 import db.Book;
-import db.Borrowing;
 import db.Init;
+import db.Borrowing;
 
 import javax.swing.*;
 import java.lang.reflect.Field;
