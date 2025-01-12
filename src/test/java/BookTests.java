@@ -27,6 +27,7 @@ public class BookTests {
             try {
                 EntityManager em = db.Init.getEntityManager();
                 em.getTransaction().begin();
+                em.remove(em.merge(c));
                 em.remove(em.merge(b));
                 em.getTransaction().commit();
             } catch (Exception _) {}
@@ -97,8 +98,6 @@ public class BookTests {
     @Order(3)
     public void removeFailTest() {
         List<Book> before = Utils.getAllEntities(Book.class);
-
-        db.User user = Utils.getUser();
         c = new Copy(b, 228, "asf");
 
         LibrarianUI lu = new LibrarianUI(new Librarian());
@@ -137,7 +136,6 @@ public class BookTests {
         EntityManager em = db.Init.getEntityManager();
         em.getTransaction().begin();
         em.remove(em.merge(c));
-        em.remove(em.merge(user));
         em.getTransaction().commit();
 
         Assertions.assertEquals(before, Utils.getAllEntities(Book.class));

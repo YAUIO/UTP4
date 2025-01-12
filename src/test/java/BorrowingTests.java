@@ -19,6 +19,10 @@ public class BorrowingTests {
     @BeforeAll
     public static void before() {
         db.Init.getEntityManager();
+        System.out.println(Init.getEntityManager().createQuery("SELECT u FROM User u", User.class).getResultList());
+        u = Utils.getUser();
+        bk = Utils.getBook();
+        c = new Copy(bk, 0, "xd");
     }
 
     @AfterAll
@@ -27,14 +31,11 @@ public class BorrowingTests {
             EntityManager em = db.Init.getEntityManager();
             em.getTransaction().begin();
             em.remove(em.merge(c));
-            em.getTransaction().commit();
-            em.remove(em.merge(b));
-            em.getTransaction().commit();
-            em.remove(em.merge(bk));
             em.remove(em.merge(u));
+            em.remove(em.merge(bk));
             em.getTransaction().commit();
-            System.out.println("Deleted");
-        } catch (Exception _) {
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -42,10 +43,6 @@ public class BorrowingTests {
     @Order(0)
     public void createTest() {
         List<Borrowing> pre = Utils.getAllEntities(Borrowing.class);
-
-        u = Utils.getUser();
-        bk = Utils.getBook();
-        c = new Copy(bk, 0, "xd");
 
         b = new Borrowing(u, c, new Date());
 
