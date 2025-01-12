@@ -91,7 +91,7 @@ public class LibrarianUI {
                             .setParameter("id", Integer.parseInt((String) table.getValue(row - counter, 0)))
                             .getSingleResult();
                     boolean isIndependent = false;
-                    if (o.getClass() == db.Book.class || o.getClass() == db.User.class) {
+                    if (o.getClass() == db.Book.class || o.getClass() == db.User.class || o.getClass() == db.Copy.class) {
                         Reflections reflections = new Reflections(
                                 new ConfigurationBuilder()
                                         .forPackage("db")
