@@ -80,65 +80,71 @@ public class LibrarianUI {
     private Runnable getDeleteLambda() {
         return () -> {
             Object o = null;
-            try {
-                EntityManager em = db.Init.getEntityManager();
-                em.getTransaction().begin();
-                o = em.createQuery("SELECT o FROM " + table.getClassName() + " o WHERE o.id = :id", Class.forName(table.getClassName()))
-                        .setParameter("id", Integer.parseInt((String) table.getValue(table.getTable().getSelectedRow(), 0)))
-                        .getSingleResult();
-                boolean isIndependent = false;
-                if (o.getClass() == db.Book.class || o.getClass() == db.User.class) {
-                    Reflections reflections = new Reflections(
-                            new ConfigurationBuilder()
-                                    .forPackage("db")
-                                    .addScanners(new SubTypesScanner(false))
-                    );
-                    Object tempObject = o;
-                    long dependentOn =
-                            reflections.getSubTypesOf(Object.class).stream()
-                                    .filter(_class -> _class.getName().contains("db.")) //search for subclasses of package db
-                                    .filter(_class ->
-                                            Arrays.stream(_class.getDeclaredFields())
-                                                    .anyMatch(f -> f.getType() == tempObject.getClass())
-                                    ).filter(_class -> {
-                                                Optional<Method> getId =
-                                                        Arrays.stream(tempObject.getClass().getDeclaredMethods())
-                                                                .filter(m -> m.getName().equalsIgnoreCase("getid"))
-                                                                .findFirst();
-                                                if (getId.isPresent()) {
-                                                    try {
-                                                        System.out.println(getId.get().invoke(tempObject));
-                                                        return em.createQuery("SELECT o from " + _class.getName().substring(_class.getName().indexOf('.') + 1) +
-                                                                        " o WHERE o." + tempObject.getClass().getName().substring(tempObject.getClass().getName().indexOf('.') + 1).toLowerCase() +
-                                                                        ".id = :id", _class)
-                                                                .setParameter("id", getId.get().invoke(tempObject))
-                                                                .getResultStream()
-                                                                .findFirst().isPresent();
-                                                    } catch (Exception e) {
-                                                        System.out.println(e.getMessage() + " " + e.getClass());
-                                                    }
-                                                }
-                                                return false;
-                                            }
-                                    ).count();
+            int[] selectedRows = table.getTable().getSelectedRows();
+            int counter = 0;
 
-                    if (dependentOn == 0) {
+            for (int row : selectedRows) {
+                try {
+                    EntityManager em = db.Init.getEntityManager();
+                    em.getTransaction().begin();
+                    o = em.createQuery("SELECT o FROM " + table.getClassName() + " o WHERE o.id = :id", Class.forName(table.getClassName()))
+                            .setParameter("id", Integer.parseInt((String) table.getValue(row - counter, 0)))
+                            .getSingleResult();
+                    boolean isIndependent = false;
+                    if (o.getClass() == db.Book.class || o.getClass() == db.User.class) {
+                        Reflections reflections = new Reflections(
+                                new ConfigurationBuilder()
+                                        .forPackage("db")
+                                        .addScanners(new SubTypesScanner(false))
+                        );
+                        Object tempObject = o;
+                        long dependentOn =
+                                reflections.getSubTypesOf(Object.class).stream()
+                                        .filter(_class -> _class.getName().contains("db.")) //search for subclasses of package db
+                                        .filter(_class ->
+                                                Arrays.stream(_class.getDeclaredFields())
+                                                        .anyMatch(f -> f.getType() == tempObject.getClass())
+                                        ).filter(_class -> {
+                                                    Optional<Method> getId =
+                                                            Arrays.stream(tempObject.getClass().getDeclaredMethods())
+                                                                    .filter(m -> m.getName().equalsIgnoreCase("getid"))
+                                                                    .findFirst();
+                                                    if (getId.isPresent()) {
+                                                        try {
+                                                            System.out.println(getId.get().invoke(tempObject));
+                                                            return em.createQuery("SELECT o from " + _class.getName().substring(_class.getName().indexOf('.') + 1) +
+                                                                            " o WHERE o." + tempObject.getClass().getName().substring(tempObject.getClass().getName().indexOf('.') + 1).toLowerCase() +
+                                                                            ".id = :id", _class)
+                                                                    .setParameter("id", getId.get().invoke(tempObject))
+                                                                    .getResultStream()
+                                                                    .findFirst().isPresent();
+                                                        } catch (Exception e) {
+                                                            System.out.println(e.getMessage() + " " + e.getClass());
+                                                        }
+                                                    }
+                                                    return false;
+                                                }
+                                        ).count();
+
+                        if (dependentOn == 0) {
+                            isIndependent = true;
+                        }
+                    } else {
                         isIndependent = true;
                     }
-                } else {
-                    isIndependent = true;
-                }
 
-                if (isIndependent) {
-                    em.remove(em.merge(o));
-                    em.getTransaction().commit();
-                } else {
-                    new Error("This record is used in other records, cannot delete it");
+                    if (isIndependent) {
+                        em.remove(em.merge(o));
+                        em.getTransaction().commit();
+                    } else {
+                        new Error("This record is used in other records, cannot delete it");
+                    }
+                    table = new DisplayTable(Class.forName(table.getClassName()));
+                    frame.changeTable(table);
+                } catch (Exception e) {
+                    new Error(e);
                 }
-                table = new DisplayTable(Class.forName(table.getClassName()));
-                frame.changeTable(table);
-            } catch (Exception e) {
-                new Error(e);
+                counter++;
             }
         };
     }
