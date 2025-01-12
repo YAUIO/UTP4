@@ -13,10 +13,10 @@ public class Error {
     }
 
     Error(Throwable e) {
-        if (e.getCause().getCause() == null) {
-            e = e.getCause();
-        } else if (e.getCause() != null){
+        if (e.getCause() != null && e.getCause().getCause() != null){
             e = e.getCause().getCause();
+        } else if (e.getCause() != null && e.getCause().getCause() == null) {
+            e = e.getCause();
         }
         JOptionPane.showMessageDialog(null, e.getMessage(), e.getClass().getName(), JOptionPane.ERROR_MESSAGE);
     }
