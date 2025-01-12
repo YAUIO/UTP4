@@ -1,10 +1,7 @@
 import GUI.DisplayTable;
 import GUI.LibrarianUI;
 import GUI.TableWrapper;
-import db.Book;
-import db.Borrowing;
-import db.Librarian;
-import db.User;
+import db.*;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.*;
 
@@ -16,6 +13,7 @@ public class BorrowingTests {
     private static Borrowing b;
     private static Book bk;
     private static User u;
+    private static Copy c;
 
 
     @BeforeAll
@@ -28,6 +26,8 @@ public class BorrowingTests {
         try {
             EntityManager em = db.Init.getEntityManager();
             em.getTransaction().begin();
+            em.remove(em.merge(c));
+            em.getTransaction().commit();
             em.remove(em.merge(b));
             em.getTransaction().commit();
             em.remove(em.merge(bk));
@@ -45,8 +45,9 @@ public class BorrowingTests {
 
         u = Utils.getUser();
         bk = Utils.getBook();
+        c = new Copy(bk, 0, "xd");
 
-        b = new Borrowing(u, bk, new Date());
+        b = new Borrowing(u, c, new Date());
 
         List<Borrowing> after = Utils.getAllEntities(Borrowing.class);
 
