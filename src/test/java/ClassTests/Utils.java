@@ -1,3 +1,5 @@
+package ClassTests;
+
 import db.Book;
 import db.User;
 
