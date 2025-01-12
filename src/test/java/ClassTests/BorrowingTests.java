@@ -20,7 +20,7 @@ public class BorrowingTests {
 
     @BeforeAll
     public static void before() {
-        db.Init.setDB("LibraryManagementTestUnit");
+        db.Init.setDB("LibraryManagement");
         db.Init.getEntityManager();
         System.out.println(Init.getEntityManager().createQuery("SELECT u FROM User u", User.class).getResultList());
         u = Utils.getUser();

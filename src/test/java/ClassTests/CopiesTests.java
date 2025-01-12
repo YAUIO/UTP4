@@ -20,7 +20,7 @@ public class CopiesTests {
 
     @BeforeAll
     public static void before() {
-        db.Init.setDB("LibraryManagementTestUnit");
+        db.Init.setDB("LibraryManagement");
         db.Init.getEntityManager();
         book = Utils.getBook();
     }
