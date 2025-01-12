@@ -130,7 +130,9 @@ public class DisplayTable {
                                     .forEach(f -> {
                                         f.setAccessible(true);
                                         try {
-                                            if (f.getType().isAnnotationPresent(Entity.class)) {
+                                            if (f.get(o) == null) {
+                                                rowLine.append( "null ");
+                                            } else if (f.getType().isAnnotationPresent(Entity.class)) {
                                                 Optional<Field> field =
                                                         Arrays.stream(f.get(o).getClass().getDeclaredFields())
                                                                 .filter(ff -> ff.getName().equals("id"))
@@ -154,8 +156,7 @@ public class DisplayTable {
                         tsv.add(rowLine);
                     });
 
-        } catch (Exception _) {
-        }
+        } catch (Exception _) {}
 
         String[][] data = new String[tsv.size() - 1][fields.size()];
 

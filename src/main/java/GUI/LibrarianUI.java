@@ -230,6 +230,17 @@ public class LibrarianUI {
                                         args[i] = types[i].cast(res.get().invoke(null, arg[i]));
                                     }
                                 } else if (types[i] == java.util.Date.class) { //that type is ruining my beautiful code. like why do you need DateFormat.getDateInstance().parse()
+                                    if (Arrays.stream(((Field)
+                                            Arrays.stream(Class.forName(table.getClassName())
+                                                    .getDeclaredFields()).toArray()[i + 1])
+                                            .getDeclaredAnnotations()).filter(a -> a.annotationType() == Column.class)
+                                            .anyMatch(a -> ((Column)a).nullable())) {
+                                        if (arg[i].isEmpty()) {
+                                            args[i] = null;
+                                            continue;
+                                        }
+                                    }
+
                                     args[i] = DateFormat.getDateInstance(DateFormat.SHORT).parse(arg[i]);
                                 } else {
                                     if (arg[i].equals("set")) continue;
