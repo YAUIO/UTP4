@@ -57,17 +57,20 @@ public class LibrarianUI {
 
     private JMenu getTableChooser(TableWrapper frame) {
         JMenu tables = new JMenu("Data");
-        JMenuItem users = new JMenuItem("Users");
-        JMenuItem books = new JMenuItem("Books");
-        JMenuItem borrowings = new JMenuItem("Borrowings");
 
-        tables.add(users);
-        tables.add(books);
-        tables.add(borrowings);
+        Reflections reflections = new Reflections(
+                new ConfigurationBuilder()
+                        .forPackage("db")
+                        .addScanners(new SubTypesScanner(false)));
 
-        users.addActionListener(e -> actionTableListener(db.User.class, frame));
-        books.addActionListener(e -> actionTableListener(db.Book.class, frame));
-        borrowings.addActionListener(e -> actionTableListener(db.Borrowing.class, frame));
+        reflections.getSubTypesOf(Object.class).stream()
+                .filter(_class -> _class.getName().contains("db.")) //search for subclasses of package db
+                .filter(_class -> _class.isAnnotationPresent(Entity.class))
+                .forEach(_class -> {
+                    JMenuItem jmi = new JMenuItem(_class.getName());
+                    jmi.addActionListener(e -> actionTableListener(_class, frame));
+                    tables.add(jmi);
+                });
 
         return tables;
     }
@@ -237,10 +240,10 @@ public class LibrarianUI {
                                     }
                                 } else if (types[i] == java.util.Date.class) { //that type is ruining my beautiful code. like why do you need DateFormat.getDateInstance().parse()
                                     if (Arrays.stream(((Field)
-                                            Arrays.stream(Class.forName(table.getClassName())
-                                                    .getDeclaredFields()).toArray()[i + 1])
-                                            .getDeclaredAnnotations()).filter(a -> a.annotationType() == Column.class)
-                                            .anyMatch(a -> ((Column)a).nullable())) {
+                                                    Arrays.stream(Class.forName(table.getClassName())
+                                                            .getDeclaredFields()).toArray()[i + 1])
+                                                    .getDeclaredAnnotations()).filter(a -> a.annotationType() == Column.class)
+                                            .anyMatch(a -> ((Column) a).nullable())) {
                                         if (arg[i].isEmpty()) {
                                             args[i] = null;
                                             continue;
@@ -285,7 +288,7 @@ public class LibrarianUI {
         };
     }
 
-    private Runnable getCopyLambda () {
+    private Runnable getCopyLambda() {
         return () -> {
             try {
                 Object o = db.Init.getEntityManager().createQuery("SELECT o FROM " + table.getClassName() + " o WHERE o.id = :id", Class.forName(table.getClassName()))
