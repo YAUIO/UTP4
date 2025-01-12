@@ -1,30 +1,35 @@
 import GUI.DisplayTable;
 import GUI.LibrarianUI;
 import GUI.TableWrapper;
-import db.*;
+import db.Book;
+import db.Copy;
+import db.Borrowing;
+import db.Librarian;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.*;
 
 import java.lang.reflect.Field;
 import java.util.*;
-import java.util.List;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class UserTests {
-    private static User user;
+public class CopiesTests {
+    private static Copy b;
+    private static Book book;
 
     @BeforeAll
     public static void before() {
         db.Init.getEntityManager();
+        book = Utils.getBook();
     }
 
     @AfterAll
     public static void after() {
-        if (user != null) {
+        if (b != null) {
             try {
                 EntityManager em = db.Init.getEntityManager();
                 em.getTransaction().begin();
-                em.remove(em.merge(user));
+                em.remove(em.merge(b));
+                em.remove(em.merge(book));
                 em.getTransaction().commit();
             } catch (Exception _) {}
         }
@@ -33,21 +38,21 @@ public class UserTests {
     @Test
     @Order(0)
     public void createTest() {
-        List<User> pre = Utils.getAllEntities(User.class);
+        List<Copy> pre = Utils.getAllEntities(Copy.class);
 
-        user = Utils.getUser();
+        b = new Copy(book, 0, "ret");
 
-        List<User> after = Utils.getAllEntities(User.class);
+        List<Copy> after = Utils.getAllEntities(Copy.class);
 
         after.removeAll(pre);
 
-        Assertions.assertEquals(user, after.getFirst());
+        Assertions.assertEquals(b, after.getFirst());
     }
 
     @Test
     @Order(1)
     public void readTest() {
-        DisplayTable dt = new DisplayTable(User.class);
+        DisplayTable dt = new DisplayTable(Copy.class);
         ArrayList<Object> objects = new ArrayList<>();
         Arrays.stream(dt.getClass().getDeclaredFields())
                 .filter(f -> f.getName().equals("objects"))
@@ -60,7 +65,7 @@ public class UserTests {
                     }
                 });
 
-        List<User> query = Utils.getAllEntities(User.class);
+        List<Copy> query = Utils.getAllEntities(Copy.class);
 
         Assertions.assertEquals(objects.stream().toList(), query);
     }
@@ -68,36 +73,35 @@ public class UserTests {
     @Test
     @Order(2)
     public void updateTest() {
-        List<User> pre = Utils.getAllEntities(User.class);
-        user.setName("Hello");
-        List<User> after = Utils.getAllEntities(User.class);
+        List<Copy> pre = Utils.getAllEntities(Copy.class);
+        b.setCopyNumber(2);
+        List<Copy> after = Utils.getAllEntities(Copy.class);
         after.removeAll(pre);
         Optional<Field> res = Arrays.stream(after.getFirst().getClass().getDeclaredFields())
-                .filter(f -> f.getName().equals("name"))
+                .filter(f -> f.getName().equals("copyNumber"))
                 .findFirst();
 
-        String name = null;
+        Integer name = null;
 
         if (res.isPresent()) {
             res.get().setAccessible(true);
             try {
-                name = (String) res.get().get(after.getFirst());
+                name = (Integer) res.get().get(after.getFirst());
             } catch (IllegalAccessException e) {
                 throw new RuntimeException(e);
             }
         }
 
-        Assertions.assertEquals(name, "Hello");
+        Assertions.assertEquals(name, 2);
     }
 
     @Test
     @Order(3)
     public void removeFailTest() {
-        List<User> before = Utils.getAllEntities(User.class);
+        List<Copy> before = Utils.getAllEntities(Copy.class);
 
-        Book book = Utils.getBook();
-        Copy c = new Copy(book, 228, "AFS");
-        Borrowing b = new Borrowing(user, c, new Date());
+        db.User user = Utils.getUser();
+        Borrowing bor = new Borrowing(user, b, new Date());
 
         LibrarianUI lu = new LibrarianUI(new Librarian());
         Arrays.stream(lu.getClass().getDeclaredFields()).filter(f -> f.getName().equals("frame")).forEach(f -> {
@@ -113,7 +117,7 @@ public class UserTests {
                         .forEach(f -> {
                             f.setAccessible(true);
                             try {
-                                DisplayTable dt = new DisplayTable(User.class);
+                                DisplayTable dt = new DisplayTable(Copy.class);
                                 dt.getTable().setColumnSelectionInterval(0,0);
                                 dt.getTable().setRowSelectionInterval(dt.getTable().getRowCount() - 1, dt.getTable().getRowCount() - 1);
                                 f.set(lu, dt);
@@ -134,19 +138,18 @@ public class UserTests {
 
         EntityManager em = db.Init.getEntityManager();
         em.getTransaction().begin();
-        em.remove(em.merge(c));
-        em.remove(em.merge(b));
-        em.remove(em.merge(book));
+        em.remove(em.merge(bor));
+        em.remove(em.merge(user));
         em.getTransaction().commit();
 
-        Assertions.assertEquals(before, Utils.getAllEntities(User.class));
+        Assertions.assertEquals(before, Utils.getAllEntities(Copy.class));
     }
 
     @Test
     @Order(4)
     public void deleteTest() {
-        List<User> before = Utils.getAllEntities(User.class);
-        before.remove(user);
+        List<Copy> before = Utils.getAllEntities(Copy.class);
+        before.remove(b);
 
         LibrarianUI lu = new LibrarianUI(new Librarian());
         Arrays.stream(lu.getClass().getDeclaredFields()).filter(f -> f.getName().equals("frame")).forEach(f -> {
@@ -162,7 +165,7 @@ public class UserTests {
                 .forEach(f -> {
                     f.setAccessible(true);
                     try {
-                        DisplayTable dt = new DisplayTable(User.class);
+                        DisplayTable dt = new DisplayTable(Copy.class);
                         dt.getTable().setColumnSelectionInterval(0,0);
                         dt.getTable().setRowSelectionInterval(dt.getTable().getRowCount() - 1, dt.getTable().getRowCount() - 1);
                         f.set(lu, dt);
@@ -181,7 +184,7 @@ public class UserTests {
             }
         });
 
-        List<User> after = Utils.getAllEntities(User.class);
+        List<Copy> after = Utils.getAllEntities(Copy.class);
 
         Assertions.assertEquals(before, after);
     }

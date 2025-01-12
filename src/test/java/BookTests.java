@@ -3,6 +3,7 @@ import GUI.LibrarianUI;
 import GUI.TableWrapper;
 import db.Book;
 import db.Borrowing;
+import db.Copy;
 import db.Librarian;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.*;
@@ -13,6 +14,7 @@ import java.util.*;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class BookTests {
     private static Book b;
+    private static Copy c;
 
     @BeforeAll
     public static void before() {
@@ -97,7 +99,7 @@ public class BookTests {
         List<Book> before = Utils.getAllEntities(Book.class);
 
         db.User user = Utils.getUser();
-        Borrowing bor = new Borrowing(user, b, new Date());
+        c = new Copy(b, 228, "asf");
 
         LibrarianUI lu = new LibrarianUI(new Librarian());
         Arrays.stream(lu.getClass().getDeclaredFields()).filter(f -> f.getName().equals("frame")).forEach(f -> {
@@ -134,7 +136,7 @@ public class BookTests {
 
         EntityManager em = db.Init.getEntityManager();
         em.getTransaction().begin();
-        em.remove(em.merge(bor));
+        em.remove(em.merge(c));
         em.remove(em.merge(user));
         em.getTransaction().commit();
 
