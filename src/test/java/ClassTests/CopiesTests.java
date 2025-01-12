@@ -1,9 +1,11 @@
+package ClassTests;
+
 import GUI.DisplayTable;
 import GUI.LibrarianUI;
 import GUI.TableWrapper;
 import db.Book;
+import db.Copy;
 import db.Borrowing;
-import db.Publisher;
 import db.Librarian;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.*;
@@ -12,12 +14,14 @@ import java.lang.reflect.Field;
 import java.util.*;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class PublisherTests {
-    private static Publisher b;
+public class CopiesTests {
+    private static Copy b;
+    private static Book book;
 
     @BeforeAll
     public static void before() {
         db.Init.getEntityManager();
+        book = Utils.getBook();
     }
 
     @AfterAll
@@ -26,6 +30,7 @@ public class PublisherTests {
             try {
                 EntityManager em = db.Init.getEntityManager();
                 em.getTransaction().begin();
+                em.remove(em.merge(book));
                 em.getTransaction().commit();
             } catch (Exception e) {
                 throw new RuntimeException(e);
@@ -36,11 +41,11 @@ public class PublisherTests {
     @Test
     @Order(0)
     public void createTest() {
-        List<Publisher> pre = Utils.getAllEntities(Publisher.class);
+        List<Copy> pre = Utils.getAllEntities(Copy.class);
 
-        b = new Publisher("kgdfkgfd", "xd", "gsdg");
+        b = new Copy(book, 0, "ret");
 
-        List<Publisher> after = Utils.getAllEntities(Publisher.class);
+        List<Copy> after = Utils.getAllEntities(Copy.class);
 
         after.removeAll(pre);
 
@@ -50,7 +55,7 @@ public class PublisherTests {
     @Test
     @Order(1)
     public void readTest() {
-        DisplayTable dt = new DisplayTable(Publisher.class);
+        DisplayTable dt = new DisplayTable(Copy.class);
         ArrayList<Object> objects = new ArrayList<>();
         Arrays.stream(dt.getClass().getDeclaredFields())
                 .filter(f -> f.getName().equals("objects"))
@@ -63,7 +68,7 @@ public class PublisherTests {
                     }
                 });
 
-        List<Publisher> query = Utils.getAllEntities(Publisher.class);
+        List<Copy> query = Utils.getAllEntities(Copy.class);
 
         Assertions.assertEquals(objects.stream().toList(), query);
     }
@@ -71,32 +76,35 @@ public class PublisherTests {
     @Test
     @Order(2)
     public void updateTest() {
-        List<Publisher> pre = Utils.getAllEntities(Publisher.class);
-        b.setName("9impulseGOAT");
-        List<Publisher> after = Utils.getAllEntities(Publisher.class);
+        List<Copy> pre = Utils.getAllEntities(Copy.class);
+        b.setCopyNumber(2);
+        List<Copy> after = Utils.getAllEntities(Copy.class);
         after.removeAll(pre);
         Optional<Field> res = Arrays.stream(after.getFirst().getClass().getDeclaredFields())
-                .filter(f -> f.getName().equals("name"))
+                .filter(f -> f.getName().equals("copyNumber"))
                 .findFirst();
 
-        String name = null;
+        Integer name = null;
 
         if (res.isPresent()) {
             res.get().setAccessible(true);
             try {
-                name = (String) res.get().get(after.getFirst());
+                name = (Integer) res.get().get(after.getFirst());
             } catch (IllegalAccessException e) {
                 throw new RuntimeException(e);
             }
         }
 
-        Assertions.assertEquals(name, "9impulseGOAT");
+        Assertions.assertEquals(name, 2);
     }
 
-    /*@Test //Return if Book.Publisher.getType == Publisher && Book.Publisher.getType != String
+    @Test
     @Order(3)
     public void removeFailTest() {
-        List<Publisher> before = Utils.getAllEntities(Publisher.class);
+        List<Copy> before = Utils.getAllEntities(Copy.class);
+
+        db.User user = Utils.getUser();
+        Borrowing bor = new Borrowing(user, b, new Date());
 
         LibrarianUI lu = new LibrarianUI(new Librarian());
         Arrays.stream(lu.getClass().getDeclaredFields()).filter(f -> f.getName().equals("frame")).forEach(f -> {
@@ -109,17 +117,17 @@ public class PublisherTests {
         });
 
         Arrays.stream(lu.getClass().getDeclaredFields()).filter(f -> f.getName().equals("table"))
-                .forEach(f -> {
-                    f.setAccessible(true);
-                    try {
-                        DisplayTable dt = new DisplayTable(Publisher.class);
-                        dt.getTable().setColumnSelectionInterval(0, 0);
-                        dt.getTable().setRowSelectionInterval(dt.getTable().getRowCount() - 1, dt.getTable().getRowCount() - 1);
-                        f.set(lu, dt);
-                    } catch (IllegalAccessException e) {
-                        throw new RuntimeException(e);
-                    }
-                });
+                        .forEach(f -> {
+                            f.setAccessible(true);
+                            try {
+                                DisplayTable dt = new DisplayTable(Copy.class);
+                                dt.getTable().setColumnSelectionInterval(0,0);
+                                dt.getTable().setRowSelectionInterval(dt.getTable().getRowCount() - 1, dt.getTable().getRowCount() - 1);
+                                f.set(lu, dt);
+                            } catch (IllegalAccessException e) {
+                                throw new RuntimeException(e);
+                            }
+                        });
 
         Arrays.stream(lu.getClass().getDeclaredMethods()).filter(m -> m.getName().equals("getDeleteLambda")).forEach(m -> {
             m.setAccessible(true);
@@ -131,13 +139,19 @@ public class PublisherTests {
             }
         });
 
-        Assertions.assertEquals(before, Utils.getAllEntities(Publisher.class));
-    }*/
+        EntityManager em = db.Init.getEntityManager();
+        em.getTransaction().begin();
+        em.remove(em.merge(bor));
+        em.remove(em.merge(user));
+        em.getTransaction().commit();
+
+        Assertions.assertEquals(before, Utils.getAllEntities(Copy.class));
+    }
 
     @Test
     @Order(4)
     public void deleteTest() {
-        List<Publisher> before = Utils.getAllEntities(Publisher.class);
+        List<Copy> before = Utils.getAllEntities(Copy.class);
         before.remove(b);
 
         LibrarianUI lu = new LibrarianUI(new Librarian());
@@ -154,8 +168,8 @@ public class PublisherTests {
                 .forEach(f -> {
                     f.setAccessible(true);
                     try {
-                        DisplayTable dt = new DisplayTable(Publisher.class);
-                        dt.getTable().setColumnSelectionInterval(0, 0);
+                        DisplayTable dt = new DisplayTable(Copy.class);
+                        dt.getTable().setColumnSelectionInterval(0,0);
                         dt.getTable().setRowSelectionInterval(dt.getTable().getRowCount() - 1, dt.getTable().getRowCount() - 1);
                         f.set(lu, dt);
                     } catch (IllegalAccessException e) {
@@ -173,7 +187,7 @@ public class PublisherTests {
             }
         });
 
-        List<Publisher> after = Utils.getAllEntities(Publisher.class);
+        List<Copy> after = Utils.getAllEntities(Copy.class);
 
         Assertions.assertEquals(before, after);
     }

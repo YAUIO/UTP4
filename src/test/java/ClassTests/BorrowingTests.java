@@ -1,3 +1,5 @@
+package ClassTests;
+
 import GUI.DisplayTable;
 import GUI.LibrarianUI;
 import GUI.TableWrapper;

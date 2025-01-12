@@ -1,8 +1,9 @@
+package ClassTests;
+
 import GUI.DisplayTable;
 import GUI.LibrarianUI;
 import GUI.TableWrapper;
 import db.Book;
-import db.Borrowing;
 import db.Copy;
 import db.Librarian;
 import jakarta.persistence.EntityManager;

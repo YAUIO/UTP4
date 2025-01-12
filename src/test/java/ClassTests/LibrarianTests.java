@@ -1,9 +1,9 @@
+package ClassTests;
+
 import GUI.DisplayTable;
 import GUI.LibrarianUI;
 import GUI.TableWrapper;
-import db.Book;
-import db.Copy;
-import db.Borrowing;
+import db.*;
 import db.Librarian;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.*;
@@ -12,14 +12,14 @@ import java.lang.reflect.Field;
 import java.util.*;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class CopiesTests {
-    private static Copy b;
-    private static Book book;
+public class LibrarianTests {
+    private static Librarian b;
+    private static User u;
 
     @BeforeAll
     public static void before() {
         db.Init.getEntityManager();
-        book = Utils.getBook();
+        u = Utils.getUser();
     }
 
     @AfterAll
@@ -28,22 +28,20 @@ public class CopiesTests {
             try {
                 EntityManager em = db.Init.getEntityManager();
                 em.getTransaction().begin();
-                em.remove(em.merge(book));
+                em.remove(em.merge(u));
                 em.getTransaction().commit();
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
+            } catch (Exception _) {}
         }
     }
 
     @Test
     @Order(0)
     public void createTest() {
-        List<Copy> pre = Utils.getAllEntities(Copy.class);
+        List<Librarian> pre = Utils.getAllEntities(Librarian.class);
 
-        b = new Copy(book, 0, "ret");
+        b = new Librarian(u, new Date(), "ret");
 
-        List<Copy> after = Utils.getAllEntities(Copy.class);
+        List<Librarian> after = Utils.getAllEntities(Librarian.class);
 
         after.removeAll(pre);
 
@@ -53,7 +51,7 @@ public class CopiesTests {
     @Test
     @Order(1)
     public void readTest() {
-        DisplayTable dt = new DisplayTable(Copy.class);
+        DisplayTable dt = new DisplayTable(Librarian.class);
         ArrayList<Object> objects = new ArrayList<>();
         Arrays.stream(dt.getClass().getDeclaredFields())
                 .filter(f -> f.getName().equals("objects"))
@@ -66,7 +64,7 @@ public class CopiesTests {
                     }
                 });
 
-        List<Copy> query = Utils.getAllEntities(Copy.class);
+        List<Librarian> query = Utils.getAllEntities(Librarian.class);
 
         Assertions.assertEquals(objects.stream().toList(), query);
     }
@@ -74,82 +72,33 @@ public class CopiesTests {
     @Test
     @Order(2)
     public void updateTest() {
-        List<Copy> pre = Utils.getAllEntities(Copy.class);
-        b.setCopyNumber(2);
-        List<Copy> after = Utils.getAllEntities(Copy.class);
+        List<Librarian> pre = Utils.getAllEntities(Librarian.class);
+        b.setPosition("xd");
+        List<Librarian> after = Utils.getAllEntities(Librarian.class);
         after.removeAll(pre);
         Optional<Field> res = Arrays.stream(after.getFirst().getClass().getDeclaredFields())
-                .filter(f -> f.getName().equals("copyNumber"))
+                .filter(f -> f.getName().equals("position"))
                 .findFirst();
 
-        Integer name = null;
+        String name = null;
 
         if (res.isPresent()) {
             res.get().setAccessible(true);
             try {
-                name = (Integer) res.get().get(after.getFirst());
+                name = (String) res.get().get(after.getFirst());
             } catch (IllegalAccessException e) {
                 throw new RuntimeException(e);
             }
         }
 
-        Assertions.assertEquals(name, 2);
+        Assertions.assertEquals(name, "xd");
     }
+
 
     @Test
     @Order(3)
-    public void removeFailTest() {
-        List<Copy> before = Utils.getAllEntities(Copy.class);
-
-        db.User user = Utils.getUser();
-        Borrowing bor = new Borrowing(user, b, new Date());
-
-        LibrarianUI lu = new LibrarianUI(new Librarian());
-        Arrays.stream(lu.getClass().getDeclaredFields()).filter(f -> f.getName().equals("frame")).forEach(f -> {
-            f.setAccessible(true);
-            try {
-                ((TableWrapper) f.get(lu)).setVisible(false);
-            } catch (IllegalAccessException e) {
-                throw new RuntimeException(e);
-            }
-        });
-
-        Arrays.stream(lu.getClass().getDeclaredFields()).filter(f -> f.getName().equals("table"))
-                        .forEach(f -> {
-                            f.setAccessible(true);
-                            try {
-                                DisplayTable dt = new DisplayTable(Copy.class);
-                                dt.getTable().setColumnSelectionInterval(0,0);
-                                dt.getTable().setRowSelectionInterval(dt.getTable().getRowCount() - 1, dt.getTable().getRowCount() - 1);
-                                f.set(lu, dt);
-                            } catch (IllegalAccessException e) {
-                                throw new RuntimeException(e);
-                            }
-                        });
-
-        Arrays.stream(lu.getClass().getDeclaredMethods()).filter(m -> m.getName().equals("getDeleteLambda")).forEach(m -> {
-            m.setAccessible(true);
-            try {
-                Runnable r = (Runnable) m.invoke(lu);
-                r.run();
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        });
-
-        EntityManager em = db.Init.getEntityManager();
-        em.getTransaction().begin();
-        em.remove(em.merge(bor));
-        em.remove(em.merge(user));
-        em.getTransaction().commit();
-
-        Assertions.assertEquals(before, Utils.getAllEntities(Copy.class));
-    }
-
-    @Test
-    @Order(4)
     public void deleteTest() {
-        List<Copy> before = Utils.getAllEntities(Copy.class);
+        List<Librarian> before = Utils.getAllEntities(Librarian.class);
         before.remove(b);
 
         LibrarianUI lu = new LibrarianUI(new Librarian());
@@ -166,7 +115,7 @@ public class CopiesTests {
                 .forEach(f -> {
                     f.setAccessible(true);
                     try {
-                        DisplayTable dt = new DisplayTable(Copy.class);
+                        DisplayTable dt = new DisplayTable(Librarian.class);
                         dt.getTable().setColumnSelectionInterval(0,0);
                         dt.getTable().setRowSelectionInterval(dt.getTable().getRowCount() - 1, dt.getTable().getRowCount() - 1);
                         f.set(lu, dt);
@@ -185,7 +134,7 @@ public class CopiesTests {
             }
         });
 
-        List<Copy> after = Utils.getAllEntities(Copy.class);
+        List<Librarian> after = Utils.getAllEntities(Librarian.class);
 
         Assertions.assertEquals(before, after);
     }
