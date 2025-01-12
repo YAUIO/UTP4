@@ -4,6 +4,7 @@ import db.Annotations.CopyConstructor;
 import db.Annotations.FullArgsConstructor;
 import jakarta.persistence.*;
 
+import java.text.DateFormat;
 import java.util.Date;
 import java.util.Objects;
 
@@ -77,7 +78,7 @@ public class Librarian {
     public String toString() {
         return "id=" + id +
                 ", user=" + user +
-                ", employmentDate=" + employmentDate +
+                ", employmentDate=" + DateFormat.getDateInstance(DateFormat.SHORT).format(employmentDate) +
                 ", position='" + position + '\'';
     }
 
@@ -91,6 +92,6 @@ public class Librarian {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, user, employmentDate, position);
+        return Objects.hash(id, user, DateFormat.getDateInstance(DateFormat.SHORT).format(employmentDate), position);
     }
 }

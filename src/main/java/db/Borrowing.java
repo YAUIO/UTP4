@@ -4,6 +4,7 @@ import db.Annotations.CopyConstructor;
 import db.Annotations.FullArgsConstructor;
 import jakarta.persistence.*;
 
+import java.text.DateFormat;
 import java.util.Date;
 import java.util.Objects;
 
@@ -106,11 +107,18 @@ public class Borrowing {
 
     @Override
     public String toString() {
-        return "id=" + id +
-                ", user=" + user +
-                ", book=" + copy +
-                ", borrowDate=" + borrowDate +
-                ", returnDate=" + returnDate;
+        if (returnDate != null) {
+            return "id=" + id +
+                    ", user=" + user +
+                    ", book=" + copy +
+                    ", borrowDate=" + DateFormat.getDateInstance(DateFormat.SHORT).format(borrowDate) +
+                    ", returnDate=" + DateFormat.getDateInstance(DateFormat.SHORT).format(returnDate);
+        } else {
+            return "id=" + id +
+                    ", user=" + user +
+                    ", book=" + copy +
+                    ", borrowDate=" + DateFormat.getDateInstance(DateFormat.SHORT).format(borrowDate);
+        }
     }
 
     @Override
@@ -123,6 +131,10 @@ public class Borrowing {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, user, copy, borrowDate, returnDate);
+        if (returnDate!= null) {
+            return Objects.hash(id, user, copy, DateFormat.getDateInstance(DateFormat.SHORT).format(borrowDate), DateFormat.getDateInstance(DateFormat.SHORT).format(returnDate));
+        } else {
+            return Objects.hash(id, user, copy, DateFormat.getDateInstance(DateFormat.SHORT).format(borrowDate));
+        }
     }
 }
