@@ -5,6 +5,7 @@ import db.Annotations.FullArgsConstructor;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.OneToOne;
 import org.reflections.Reflections;
 import org.reflections.scanners.SubTypesScanner;
 import org.reflections.util.ConfigurationBuilder;
@@ -16,6 +17,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.text.DateFormat;
 import java.util.*;
+import java.util.List;
 
 public class LibrarianUI {
     private final db.Librarian user;
@@ -46,7 +48,7 @@ public class LibrarianUI {
         tables.add(delete);
         tables.add(create);
 
-        duplicateWithNewId.addActionListener(e -> getCopyLambda().run());
+        duplicateWithNewId.addActionListener(_ -> getCopyLambda().run());
 
         delete.addActionListener(_ -> getDeleteLambda().run());
 
@@ -115,8 +117,8 @@ public class LibrarianUI {
                                                     if (getId.isPresent()) {
                                                         try {
                                                             System.out.println(getId.get().invoke(tempObject));
-                                                            return em.createQuery("SELECT o from " + _class.getName().substring(_class.getName().indexOf('.') + 1) +
-                                                                            " o WHERE o." + tempObject.getClass().getName().substring(tempObject.getClass().getName().indexOf('.') + 1).toLowerCase() +
+                                                            return em.createQuery("SELECT o from " + _class.getSimpleName() +
+                                                                            " o WHERE o." + tempObject.getClass().getSimpleName().toLowerCase() +
                                                                             ".id = :id", _class)
                                                                     .setParameter("id", getId.get().invoke(tempObject))
                                                                     .getResultStream()
@@ -172,7 +174,7 @@ public class LibrarianUI {
                     for (Class<?> c : types) {
                         if (c.isAnnotationPresent(Entity.class)) {
                             try {
-                                Object[] arr = db.Init.getEntityManager().createQuery("SELECT o FROM " + c.getName().substring(c.getName().indexOf('.') + 1) + " o", c)
+                                Object[] arr = db.Init.getEntityManager().createQuery("SELECT o FROM " + c.getSimpleName() + " o", c)
                                         .getResultList().toArray();
 
                                 ScrollableList<Object> sel = new ScrollableList<>(new JList<>(arr));
@@ -227,35 +229,9 @@ public class LibrarianUI {
                                 c++;
                             }
 
-                            for (int i = 0; i < args.length; i++) {
-                                if (types[i] != String.class && types[i] != java.util.Date.class) {
-                                    Optional<Method> res =
-                                            Arrays.stream(types[i].getDeclaredMethods())
-                                                    .filter(m -> m.getParameterCount() == 1)
-                                                    .filter(m -> m.getParameterTypes()[0] == String.class)
-                                                    .filter(m -> m.getName().contains("value"))
-                                                    .findFirst();
-                                    if (res.isPresent()) {
-                                        args[i] = types[i].cast(res.get().invoke(null, arg[i]));
-                                    }
-                                } else if (types[i] == java.util.Date.class) { //that type is ruining my beautiful code. like why do you need DateFormat.getDateInstance().parse()
-                                    if (Arrays.stream(((Field)
-                                                    Arrays.stream(Class.forName(table.getClassName())
-                                                            .getDeclaredFields()).toArray()[i + 1])
-                                                    .getDeclaredAnnotations()).filter(a -> a.annotationType() == Column.class)
-                                            .anyMatch(a -> ((Column) a).nullable())) {
-                                        if (arg[i].isEmpty()) {
-                                            args[i] = null;
-                                            continue;
-                                        }
-                                    }
+                            UIUtils.parseArguments(args, arg, types, table);
 
-                                    args[i] = DateFormat.getDateInstance(DateFormat.SHORT).parse(arg[i]);
-                                } else {
-                                    if (arg[i].equals("set")) continue;
-                                    args[i] = arg[i];
-                                }
-                            }
+                            UIUtils.checkIfUnique(args, table);
 
                             constructor.newInstance(args);
 
@@ -300,7 +276,7 @@ public class LibrarianUI {
                                 .filter(f -> !f.getName().equals("id"))
                                 .filter(f -> Arrays.stream(f.getDeclaredAnnotations())
                                         .filter(a -> a.annotationType() == Column.class)
-                                        .anyMatch(a -> ((Column) a).unique()))
+                                        .anyMatch(a -> ((Column) a).unique()) || f.isAnnotationPresent(OneToOne.class))
                                 .toArray();
 
                 if (uniqueFields.length == 0) {
@@ -346,7 +322,7 @@ public class LibrarianUI {
                                 Class<?> c = types[i];
                                 if (c.isAnnotationPresent(Entity.class)) {
                                     try {
-                                        Object[] arr = db.Init.getEntityManager().createQuery("SELECT o FROM " + c.getName().substring(c.getName().indexOf('.') + 1) + " o", c)
+                                        Object[] arr = db.Init.getEntityManager().createQuery("SELECT o FROM " + c.getSimpleName() + " o", c)
                                                 .getResultList().toArray();
 
                                         ScrollableList<Object> sel = new ScrollableList<>(new JList<>(arr));
@@ -418,27 +394,9 @@ public class LibrarianUI {
                                         c++;
                                     }
 
-                                    for (int i = 0; i < args.length; i++) {
-                                        if (arg[i] != null && arg[i].equals("set")) continue;
+                                    UIUtils.parseArguments(args, arg, types, table);
 
-                                        if (types[i] != String.class && types[i] != java.util.Date.class) {
-                                            Optional<Method> res =
-                                                    Arrays.stream(types[i].getDeclaredMethods())
-                                                            .filter(m -> m.getParameterCount() == 1)
-                                                            .filter(m -> m.getParameterTypes()[0] == String.class)
-                                                            .filter(m -> m.getName().contains("value"))
-                                                            .findFirst();
-                                            if (res.isPresent()) {
-                                                args[i] = types[i].cast(res.get().invoke(null, arg[i]));
-                                            }
-                                        } else if (types[i] == java.util.Date.class) { //that type is ruining my beautiful code. like why do you need DateFormat.getDateInstance().parse()
-                                            args[i] = DateFormat.getDateInstance(DateFormat.SHORT).parse(arg[i]);
-                                        } else {
-                                            args[i] = arg[i];
-                                        }
-                                    }
-
-                                    System.out.println("Creating new object: " + Arrays.toString(args));
+                                    UIUtils.checkIfUnique(args, table);
 
                                     constructor.newInstance(args);
 
@@ -467,6 +425,8 @@ public class LibrarianUI {
                 }
                 table = new DisplayTable(Class.forName(table.getClassName()));
                 frame.changeTable(table);
+            } catch (ArrayIndexOutOfBoundsException _) {
+                new Error("Choose a row first");
             } catch (Exception exc) {
                 new Error("Incorrect choice: " + exc.getClass().getName() + ": " + exc.getMessage());
             }
