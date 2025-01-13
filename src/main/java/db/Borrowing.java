@@ -1,11 +1,13 @@
 package db;
 
+import GUI.UIUtils;
 import db.Annotations.CopyConstructor;
 import db.Annotations.FullArgsConstructor;
 import jakarta.persistence.*;
 
 import java.text.DateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 
 @Entity
@@ -43,6 +45,12 @@ public class Borrowing {
     }
 
     public Borrowing(User user, Copy book, Date borrowDate) {
+        if (UIUtils.checkAvailableCopies(book.book.getId())) {
+            throw new RuntimeException("There aren't any free copies");
+        }
+
+        book.setStatus("BORROWED");
+
         this.user = user;
         this.copy = book;
         this.borrowDate = borrowDate;
@@ -56,6 +64,10 @@ public class Borrowing {
 
     @CopyConstructor
     public Borrowing(Borrowing b) {
+        if (UIUtils.checkAvailableCopies(b.copy.book.getId())) {
+            throw new RuntimeException("There aren't any free copies");
+        }
+
         user = b.user;
         copy = b.copy;
         borrowDate = b.borrowDate;
@@ -91,6 +103,9 @@ public class Borrowing {
 
     public void setReturnDate(Date returnDate) {
         this.returnDate = returnDate;
+        if (returnDate.before(new Date())) {
+            copy.setStatus("FREE");
+        }
         EntityManager em = Init.getEntityManager();
         em.getTransaction().begin();
         em.merge(this);
