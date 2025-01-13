@@ -44,7 +44,7 @@ public class CopiesTests {
     public void createTest() {
         List<Copy> pre = Utils.getAllEntities(Copy.class);
 
-        b = new Copy(book, 0, "ret");
+        b = new Copy(book, 0, "BORROWED");
 
         List<Copy> after = Utils.getAllEntities(Copy.class);
 
