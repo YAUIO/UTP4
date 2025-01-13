@@ -4,6 +4,8 @@ import db.Annotations.CopyConstructor;
 import db.Annotations.FullArgsConstructor;
 import jakarta.persistence.*;
 
+
+import java.util.List;
 import java.util.Objects;
 
 @Entity
@@ -23,8 +25,20 @@ public class Copy {
     @Column(nullable = false)
     private String status;
 
+    private enum states {
+        FREE,
+        BORROWED
+    }
+
     @FullArgsConstructor
     public Copy(Book book, Integer copyNumber, String status) {
+        states s = null;
+        try {
+            s = states.valueOf(status);
+        } catch (Exception _){}
+        if (status == null || s == null) {
+            status = "FREE";
+        }
         this.book = book;
         this.copyNumber = copyNumber;
         this.status = status;
