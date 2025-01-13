@@ -33,6 +33,9 @@ public class Borrowing {
 
     @FullArgsConstructor
     public Borrowing(User user, Copy book, Date borrowDate, Date returnDate) {
+        if (returnDate.before(new Date()) && !UIUtils.checkAvailableCopies(book.book.getId())) {
+            throw new RuntimeException("There aren't any free copies");
+        }
         this.user = user;
         this.copy = book;
         this.borrowDate = borrowDate;
@@ -45,7 +48,7 @@ public class Borrowing {
     }
 
     public Borrowing(User user, Copy book, Date borrowDate) {
-        if (UIUtils.checkAvailableCopies(book.book.getId())) {
+        if (!UIUtils.checkAvailableCopies(book.book.getId())) {
             throw new RuntimeException("There aren't any free copies");
         }
 
@@ -64,7 +67,7 @@ public class Borrowing {
 
     @CopyConstructor
     public Borrowing(Borrowing b) {
-        if (UIUtils.checkAvailableCopies(b.copy.book.getId())) {
+        if (!UIUtils.checkAvailableCopies(b.copy.book.getId())) {
             throw new RuntimeException("There aren't any free copies");
         }
 
