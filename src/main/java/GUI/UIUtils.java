@@ -1,5 +1,6 @@
 package GUI;
 
+import db.Init;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.OneToOne;
@@ -9,10 +10,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.text.DateFormat;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 public class UIUtils {
     protected static void checkIfUnique(Object[] args, DisplayTable table) throws ClassNotFoundException {
@@ -68,5 +66,26 @@ public class UIUtils {
                 args[i] = arg[i];
             }
         }
+    }
+
+    public static boolean checkAvailableCopies (Integer bookId) {
+        List<?> copies =
+                Init.getEntityManager()
+                        .createQuery("SELECT c FROM Copy c WHERE c.book.id = :id", db.Copy.class)
+                        .setParameter("id", bookId)
+                        .getResultList();
+
+        List<?> unReturnedBorrowings =
+                Init.getEntityManager().createQuery("SELECT o FROM Borrowing o WHERE o.copy.book.id = :id AND :cond = true", db.Borrowing.class)
+                        .setParameter("id", bookId)
+                        .setParameter("cond", Init.getEntityManager().createQuery("SELECT o.returnDate FROM Borrowing o WHERE o.copy.book.id = :id", java.util.Date.class)
+                                .setParameter("id", bookId)
+                                .getResultStream()
+                                .anyMatch(d -> d == null || (d.before(new Date()))
+                                )
+                        )
+                        .getResultList();
+
+        return unReturnedBorrowings.size() < copies.size();
     }
 }

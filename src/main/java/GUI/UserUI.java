@@ -7,6 +7,7 @@ import db.Borrowing;
 import javax.swing.*;
 import java.lang.reflect.Field;
 import java.util.*;
+import java.util.function.Predicate;
 
 public class UserUI {
     private final db.User user;
@@ -38,36 +39,7 @@ public class UserUI {
 
         available.addActionListener(e -> {
             if (table.getClassName().equals(Book.class.getName()) && !isFiltered) {
-                table = new DisplayTable(Book.class, book -> {
-                    Optional<Field> fs =
-                            Arrays.stream(book.getClass().getDeclaredFields())
-                                    .filter(f -> f.getName().equals("id"))
-                                    .findFirst();
-
-                    if (fs.isPresent()) {
-                        try {
-                            fs.get().setAccessible(true);
-                            Integer id = (Integer) fs.get().get(book);
-
-                            List<?> copies =
-                                    Init.getEntityManager()
-                                            .createQuery("SELECT c FROM Copy c WHERE c.book.id = :id", db.Copy.class)
-                                            .setParameter("id", id)
-                                            .getResultList();
-
-                            List<?> unReturnedBorrowings =
-                                    Init.getEntityManager().createQuery("SELECT o FROM Borrowing o WHERE o.book.id = :id AND (o.returnDate = null OR o.returnDate > :date)", db.Borrowing.class)
-                                            .setParameter("id", id)
-                                            .setParameter("date", new Date())
-                                            .getResultList();
-
-                            return unReturnedBorrowings.size() < copies.size();
-                        } catch (Exception ex) {
-                            new Error(ex);
-                        }
-                    }
-                    return false;
-                });
+                table = new DisplayTable(Book.class, filterAvailable());
                 frame.changeTable(table);
                 isFiltered = !isFiltered;
             } else if (table.getClassName().equals(Book.class.getName())) {
@@ -88,14 +60,21 @@ public class UserUI {
         tables.add(books);
         tables.add(borrowings);
 
-        books.addActionListener(e -> actionTableListener(db.Book.class, frame));
+        books.addActionListener(e -> {
+            if (!isFiltered) {
+                actionTableListener(db.Book.class, frame);
+            } else {
+                table = new DisplayTable(Book.class, filterAvailable());
+                frame.changeTable(table);
+            }
+        });
         borrowings.addActionListener(e -> {
             table = new DisplayTable(db.Borrowing.class, borrowing -> {
                 return
-                Init.getEntityManager().createQuery("SELECT o FROM Borrowing o WHERE o.user.id = :id", db.Borrowing.class)
-                        .setParameter("id", this.user.getId())
-                        .getResultStream()
-                        .anyMatch(b -> Objects.equals(b.getId(), ((Borrowing) borrowing).getId()));
+                        Init.getEntityManager().createQuery("SELECT o FROM Borrowing o WHERE o.user.id = :id", db.Borrowing.class)
+                                .setParameter("id", this.user.getId())
+                                .getResultStream()
+                                .anyMatch(b -> Objects.equals(b.getId(), ((Borrowing) borrowing).getId()));
             });
             frame.changeTable(table);
         });
@@ -107,4 +86,26 @@ public class UserUI {
         table = new DisplayTable(ent);
         tw.changeTable(table);
     }
+
+    private Predicate<Object> filterAvailable() {
+        return book -> {
+            Optional<Field> fs =
+                    Arrays.stream(book.getClass().getDeclaredFields())
+                            .filter(f -> f.getName().equals("id"))
+                            .findFirst();
+
+            if (fs.isPresent()) {
+                try {
+                    fs.get().setAccessible(true);
+                    Integer id = (Integer) fs.get().get(book);
+                    return UIUtils.checkAvailableCopies(id);
+                } catch (Exception ex) {
+                    new Error(ex);
+                }
+            }
+            return false;
+        };
+    }
+
+
 }
