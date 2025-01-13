@@ -131,7 +131,7 @@ public class DisplayTable {
                                         f.setAccessible(true);
                                         try {
                                             if (f.get(o) == null) {
-                                                rowLine.append( "null ");
+                                                rowLine.append( "null}");
                                             } else if (f.getType().isAnnotationPresent(Entity.class)) {
                                                 Optional<Field> field =
                                                         Arrays.stream(f.get(o).getClass().getDeclaredFields())
@@ -139,14 +139,14 @@ public class DisplayTable {
                                                                 .findFirst();
                                                 if (field.isPresent()) {
                                                     field.get().setAccessible(true);
-                                                    rowLine.append(field.get().get(f.get(o))).append(" ");
+                                                    rowLine.append(field.get().get(f.get(o))).append("}");
                                                 } else {
                                                     throw new RuntimeException("No id field in Entity class");
                                                 }
                                             } else if (f.getType() == Date.class) {
-                                                rowLine.append(f.get(o).toString().split("\\s+")[0]).append(" ");
+                                                rowLine.append(f.get(o).toString().split("\\s+")[0]).append("}");
                                             } else {
-                                                rowLine.append(f.get(o)).append(" ");
+                                                rowLine.append(f.get(o)).append("}");
                                             }
                                         } catch (Exception e) {
                                             new Error(e);
@@ -161,7 +161,7 @@ public class DisplayTable {
         String[][] data = new String[tsv.size() - 1][fields.size()];
 
         for (int i = 1; i < tsv.size(); i++) {
-            String[] val = tsv.get(i).toString().trim().split("\\s+");
+            String[] val = tsv.get(i).toString().trim().split("}");
             if (val.length > data[i - 1].length) { //handling for spaces
                 String[] cVal = val;
                 val = new String[fields.size()];
