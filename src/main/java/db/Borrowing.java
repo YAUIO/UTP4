@@ -33,7 +33,13 @@ public class Borrowing {
 
     @FullArgsConstructor
     public Borrowing(User user, Copy book, Date borrowDate, Date returnDate) {
-        if (returnDate.before(new Date()) && !UIUtils.checkAvailableCopies(book.book.getId())) {
+        if (borrowDate.before(new Date())) {
+            throw new RuntimeException("BorrowDate should be after today");
+        }
+        if (returnDate.before(borrowDate)) {
+            throw new RuntimeException("ReturnDate should be after BorrowDate");
+        }
+        if (!UIUtils.checkAvailableCopies(book.book.getId())) {
             throw new RuntimeException("There aren't any free copies");
         }
         this.user = user;
@@ -48,6 +54,9 @@ public class Borrowing {
     }
 
     public Borrowing(User user, Copy book, Date borrowDate) {
+        if (borrowDate.before(new Date())) {
+            throw new RuntimeException("BorrowDate should be after today");
+        }
         if (!UIUtils.checkAvailableCopies(book.book.getId())) {
             throw new RuntimeException("There aren't any free copies");
         }
@@ -97,6 +106,9 @@ public class Borrowing {
     }
 
     public void setBorrowDate(Date borrowDate) {
+        if (borrowDate.before(returnDate)) {
+            throw new RuntimeException("BorrowDate should be before ReturnDate");
+        }
         this.borrowDate = borrowDate;
         EntityManager em = Init.getEntityManager();
         em.getTransaction().begin();
@@ -105,6 +117,9 @@ public class Borrowing {
     }
 
     public void setReturnDate(Date returnDate) {
+        if (returnDate.before(borrowDate)) {
+            throw new RuntimeException("ReturnDate should be after BorrowDate");
+        }
         this.returnDate = returnDate;
         if (returnDate.before(new Date())) {
             copy.setStatus("FREE");
@@ -149,7 +164,7 @@ public class Borrowing {
 
     @Override
     public int hashCode() {
-        if (returnDate!= null) {
+        if (returnDate != null) {
             return Objects.hash(id, user, copy, DateFormat.getDateInstance(DateFormat.SHORT).format(borrowDate), DateFormat.getDateInstance(DateFormat.SHORT).format(returnDate));
         } else {
             return Objects.hash(id, user, copy, DateFormat.getDateInstance(DateFormat.SHORT).format(borrowDate));
