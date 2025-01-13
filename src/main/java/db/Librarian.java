@@ -39,6 +39,9 @@ public class Librarian {
 
     @FullArgsConstructor
     public Librarian(User user, Date employmentDate, String position) {
+        if (employmentDate.after(new Date())) {
+            throw new RuntimeException("Can't be employed in future");
+        }
         this.user = user;
         this.employmentDate = employmentDate;
         this.position = position;
@@ -59,6 +62,9 @@ public class Librarian {
     }
 
     public void setEmploymentDate(Date employmentDate) {
+        if (employmentDate.after(new Date())) {
+            throw new RuntimeException("Can't be employed in future");
+        }
         this.employmentDate = employmentDate;
         EntityManager em = Init.getEntityManager();
         em.getTransaction().begin();
