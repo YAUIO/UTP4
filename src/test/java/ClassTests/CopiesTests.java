@@ -3,10 +3,7 @@ package ClassTests;
 import GUI.DisplayTable;
 import GUI.LibrarianUI;
 import GUI.TableWrapper;
-import db.Book;
-import db.Copy;
-import db.Borrowing;
-import db.Librarian;
+import db.*;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.*;
 
@@ -17,12 +14,14 @@ import java.util.*;
 public class CopiesTests {
     private static Copy b;
     private static Book book;
+    private static Publisher p;
 
     @BeforeAll
     public static void before() {
         db.Init.setDB("LibraryManagement");
         db.Init.getEntityManager();
-        book = Utils.getBook();
+        p = new Publisher("hello", "its", "3466436436");
+        book = Utils.getBook(p);
     }
 
     @AfterAll
@@ -32,6 +31,7 @@ public class CopiesTests {
                 EntityManager em = db.Init.getEntityManager();
                 em.getTransaction().begin();
                 em.remove(em.merge(book));
+                em.remove(em.merge(p));
                 em.getTransaction().commit();
             } catch (Exception e) {
                 throw new RuntimeException(e);

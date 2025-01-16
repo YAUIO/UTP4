@@ -1,6 +1,7 @@
 package ClassTests;
 
 import db.Book;
+import db.Publisher;
 import db.User;
 
 import java.util.List;
@@ -14,7 +15,7 @@ public class Utils{
         return new User("Artiom", "nby@gmail.com", "+234242324", "Krakow");
     }
 
-    public static Book getBook () {
-        return new Book("a","a","a",2007,"a");
+    public static Book getBook (Publisher p) {
+        return new Book("a","a",p,2007,"a");
     }
 }

@@ -14,6 +14,7 @@ import java.util.List;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class UserTests {
     private static User user;
+    private static Publisher p;
 
     @BeforeAll
     public static void before() {
@@ -96,8 +97,8 @@ public class UserTests {
     @Order(3)
     public void removeFailTest() {
         List<User> before = Utils.getAllEntities(User.class);
-
-        Book book = Utils.getBook();
+        p = new Publisher("hello", "its", "3466436436");
+        Book book = Utils.getBook(p);
         Copy c = new Copy(book, 228, "AFS");
         Borrowing b = new Borrowing(user, c, new Date());
 
@@ -139,6 +140,7 @@ public class UserTests {
         em.remove(em.merge(b));
         em.remove(em.merge(c));
         em.remove(em.merge(book));
+        em.remove(em.merge(p));
         em.getTransaction().commit();
 
         Assertions.assertEquals(before, Utils.getAllEntities(User.class));

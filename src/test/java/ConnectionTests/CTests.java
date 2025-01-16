@@ -70,7 +70,8 @@ public class CTests {
     public void BorrowingUser() {
         User u = ClassTests.Utils.getUser();
         User u1 = new User("ASD", "ASD", "ASD", "ASD");
-        Book b = ClassTests.Utils.getBook();
+        Publisher p = new Publisher("hello", "its", "me");
+        Book b = ClassTests.Utils.getBook(p);
         ArrayList<Borrowing> bor = new ArrayList<>();
         int size = 10;
         HashMap<Borrowing,Integer> arr = new HashMap<>();
@@ -112,8 +113,9 @@ public class CTests {
 
     @Test
     public void BookCopy() {
-        Book u = ClassTests.Utils.getBook();
-        Book u1 = new Book("DSA","dfsdf","ASDAF",1243,"dlfgi87435879384975");
+        Publisher p = new Publisher("hello", "its", "3466436436");
+        Book u = ClassTests.Utils.getBook(p);
+        Book u1 = new Book("DSA","dfsdf",p,1243,"dlfgi87435879384975");
 
         ArrayList<Copy> bor = new ArrayList<>();
         int size = 10;

@@ -3,6 +3,8 @@ package ClassTests;
 import GUI.DisplayTable;
 import GUI.LibrarianUI;
 import GUI.TableWrapper;
+import db.Book;
+import db.Init;
 import db.Publisher;
 import db.Librarian;
 import jakarta.persistence.EntityManager;
@@ -94,10 +96,12 @@ public class PublisherTests {
         Assertions.assertEquals(name, "9impulseGOAT");
     }
 
-    /*@Test //Return if Book.Publisher.getType == Publisher && Book.Publisher.getType != String
+    @Test //Return if Book.Publisher.getType == Publisher && Book.Publisher.getType != String
     @Order(3)
     public void removeFailTest() {
         List<Publisher> before = Utils.getAllEntities(Publisher.class);
+
+        Book bk = new Book("h", "asd", b, 2006, "dfhdhgdfhgfj");
 
         LibrarianUI lu = new LibrarianUI(new Librarian());
         Arrays.stream(lu.getClass().getDeclaredFields()).filter(f -> f.getName().equals("frame")).forEach(f -> {
@@ -132,8 +136,13 @@ public class PublisherTests {
             }
         });
 
+        EntityManager em = Init.getEntityManager();
+        em.getTransaction().begin();
+        em.remove(em.merge(bk));
+        em.getTransaction().commit();
+
         Assertions.assertEquals(before, Utils.getAllEntities(Publisher.class));
-    }*/
+    }
 
     @Test
     @Order(4)

@@ -6,6 +6,7 @@ import GUI.TableWrapper;
 import db.Book;
 import db.Copy;
 import db.Librarian;
+import db.Publisher;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.*;
 
@@ -16,6 +17,7 @@ import java.util.*;
 public class BookTests {
     private static Book b;
     private static Copy c;
+    private static Publisher p;
 
     @BeforeAll
     public static void before() {
@@ -31,6 +33,7 @@ public class BookTests {
                 em.getTransaction().begin();
                 em.remove(em.merge(c));
                 em.remove(em.merge(b));
+                em.remove(em.merge(p));
                 em.getTransaction().commit();
             } catch (Exception _) {}
         }
@@ -40,8 +43,9 @@ public class BookTests {
     @Order(0)
     public void createTest() {
         List<Book> pre = Utils.getAllEntities(Book.class);
+        p = new Publisher("hello", "its", "3466436436");
 
-        b = Utils.getBook();
+        b = Utils.getBook(p);
 
         List<Book> after = Utils.getAllEntities(Book.class);
 

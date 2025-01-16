@@ -16,6 +16,7 @@ public class BorrowingTests {
     private static Book bk;
     private static User u;
     private static Copy c;
+    private static Publisher p;
 
 
     @BeforeAll
@@ -24,7 +25,8 @@ public class BorrowingTests {
         db.Init.getEntityManager();
         System.out.println(Init.getEntityManager().createQuery("SELECT u FROM User u", User.class).getResultList());
         u = Utils.getUser();
-        bk = Utils.getBook();
+        p = new Publisher("hello", "its", "3466436436");
+        bk = Utils.getBook(p);
         c = new Copy(bk, 0, "xd");
     }
 
@@ -36,6 +38,7 @@ public class BorrowingTests {
             em.remove(em.merge(c));
             em.remove(em.merge(u));
             em.remove(em.merge(bk));
+            em.remove(em.merge(p));
             em.getTransaction().commit();
         } catch (Exception e) {
             throw new RuntimeException(e);

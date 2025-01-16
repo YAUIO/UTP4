@@ -19,8 +19,9 @@ public class Book {
     @Column(nullable = false)
     private String author;
 
-    @Column(nullable = false)
-    private String publisher;
+    @ManyToOne
+    @JoinColumn(name = "publisher_id", nullable = false)
+    private Publisher publisher;
 
     @Column(nullable = false)
     private Integer publicationYear;
@@ -31,7 +32,7 @@ public class Book {
     public Book(){}
 
     @FullArgsConstructor
-    public Book(String title, String author, String publisher, Integer publicationYear, String isbn) {
+    public Book(String title, String author, Publisher publisher, Integer publicationYear, String isbn) {
         this.title = title;
         this.author = author;
         this.publisher = publisher;
@@ -86,7 +87,7 @@ public class Book {
         em.getTransaction().commit();
     }
 
-    public void setPublisher(String publisher) {
+    public void setPublisher(Publisher publisher) {
         this.publisher = publisher;
         EntityManager em = Init.getEntityManager();
         em.getTransaction().begin();

@@ -46,6 +46,10 @@ public class Publisher {
         em.getTransaction().commit();
     }
 
+    public Integer getId() {
+        return id;
+    }
+
     public void setAddress(String address) {
         this.address = address;
         EntityManager em = Init.getEntityManager();
