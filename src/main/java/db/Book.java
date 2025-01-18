@@ -1,6 +1,5 @@
 package db;
 
-import GUI.UIUtils;
 import db.Annotations.CopyConstructor;
 import db.Annotations.FullArgsConstructor;
 import jakarta.persistence.*;
