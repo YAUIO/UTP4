@@ -1,10 +1,13 @@
 package GUI;
 
+import db.Borrowing;
+import db.Copy;
 import db.Init;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.OneToOne;
 
+import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -69,7 +72,7 @@ public class UIUtils {
         }
     }
 
-    public static boolean checkAvailableCopies(Integer bookId) {
+    public static synchronized boolean checkAvailableCopies(Integer bookId, @Nullable Copy copy) {
         List<?> copies =
                 Init.getEntityManager()
                         .createQuery("SELECT c FROM Copy c WHERE c.book.id = :id", db.Copy.class)
@@ -77,16 +80,45 @@ public class UIUtils {
                         .getResultList();
 
         List<?> unReturnedBorrowings =
-                Init.getEntityManager().createQuery("SELECT o FROM Borrowing o WHERE o.copy.book.id = :id AND :cond = true", db.Borrowing.class)
+                Init.getEntityManager().createQuery("SELECT o FROM Borrowing o WHERE o.copy.book.id = :id", db.Borrowing.class)
                         .setParameter("id", bookId)
-                        .setParameter("cond", Init.getEntityManager().createQuery("SELECT o.returnDate FROM Borrowing o WHERE o.copy.book.id = :id", java.util.Date.class)
-                                .setParameter("id", bookId)
-                                .getResultStream()
-                                .anyMatch(d -> d == null || (d.before(new Date()))
-                                )
-                        )
                         .getResultList();
 
-        return unReturnedBorrowings.size() < copies.size();
+        try {
+            Field rDate = Borrowing.class.getDeclaredField("returnDate");
+            rDate.setAccessible(true);
+            unReturnedBorrowings = unReturnedBorrowings.stream().filter(b -> {
+                try {
+                    return rDate.get(b) == null || ((Date) rDate.get(b)).after(new Date());
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }).toList();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        if (unReturnedBorrowings.size() >= copies.size()) {
+            return false;
+        }
+
+        if (copy != null) {
+            try {
+                Field copyF = Borrowing.class.getDeclaredField("copy");
+                copyF.setAccessible(true);
+                return unReturnedBorrowings.stream()
+                        .anyMatch(r -> {
+                            try {
+                                return !copyF.get(r).equals(copy);
+                            } catch (Exception e) {
+                                throw new RuntimeException(e);
+                            }
+                        });
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        return true;
     }
 }
