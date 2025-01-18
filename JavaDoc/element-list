@@ -1,6 +1,6 @@
 unnamed package
 ClassTests
-ConnectionTests
+OtherTests
 db
 db.Annotations
 GUI
