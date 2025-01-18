@@ -32,7 +32,6 @@ public class Tools {
         fields = Arrays.copyOfRange(fields, 1, fields.length);
         int i = 0;
         for (Field f : fields) {
-            System.out.println(f.getName() + " " + args[i]);
             Optional<Annotation> searchAnnotation = Arrays.stream(f.getDeclaredAnnotations()).filter(a -> a.annotationType() == Column.class || a.annotationType() == JoinColumn.class).findFirst();
             if (searchAnnotation.isPresent()) {
                 if (searchAnnotation.get().annotationType() == Column.class) {
@@ -43,7 +42,6 @@ public class Tools {
                     checkArg(args[i],specs.nullable(),f);
                 }
             } else {
-                System.out.println(f.getName() + " " + Arrays.toString(f.getDeclaredAnnotations()));
                 throw new RuntimeException("Passed type isn't a column");
             }
             i++;

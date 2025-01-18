@@ -36,15 +36,17 @@ public class Borrowing {
         if (borrowDate.before(new Date())) {
             throw new RuntimeException("BorrowDate should be after today");
         }
-        if (returnDate.before(borrowDate)) {
+        if (returnDate != null && returnDate.before(borrowDate)) {
             throw new RuntimeException("ReturnDate should be after BorrowDate");
         }
-        if (!UIUtils.checkAvailableCopies(book.book.getId())) {
+        if (!UIUtils.checkAvailableCopies(book.book.getId(), copy)) {
             throw new RuntimeException("There aren't any free copies");
         }
 
-        if (returnDate.before(new Date())) {
+        if (returnDate != null && returnDate.before(new Date())) {
             book.setStatus("FREE");
+        } else {
+            book.setStatus("BORROWED");
         }
 
         this.user = user;
@@ -59,7 +61,7 @@ public class Borrowing {
         if (borrowDate.before(new Date())) {
             throw new RuntimeException("BorrowDate should be after today");
         }
-        if (!UIUtils.checkAvailableCopies(book.book.getId())) {
+        if (!UIUtils.checkAvailableCopies(book.book.getId(), copy)) {
             throw new RuntimeException("There aren't any free copies");
         }
 
@@ -75,8 +77,8 @@ public class Borrowing {
 
     @CopyConstructor
     public Borrowing(Borrowing b) {
-        if (!UIUtils.checkAvailableCopies(b.copy.book.getId())) {
-            throw new RuntimeException("There aren't any free copies");
+        if (!UIUtils.checkAvailableCopies(b.copy.book.getId(), copy)) {
+            throw new RuntimeException("There aren't any free copies or the copy is already borrowed");
         }
 
         user = b.user;
