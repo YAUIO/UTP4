@@ -2,16 +2,14 @@ package GUI;
 
 import db.Annotations.CopyConstructor;
 import db.Annotations.FullArgsConstructor;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.*;
 import org.reflections.Reflections;
 import org.reflections.scanners.SubTypesScanner;
 import org.reflections.util.ConfigurationBuilder;
 
 import javax.swing.*;
 import java.awt.*;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -276,9 +274,16 @@ public class LibrarianUI {
                         Arrays.stream(o.getClass().getDeclaredFields())
                                 .filter(f -> !f.getName().equals("id"))
                                 .filter(f -> Arrays.stream(f.getDeclaredAnnotations())
-                                        .filter(a -> a.annotationType() == Column.class)
-                                        .anyMatch(a -> ((Column) a).unique()) || f.isAnnotationPresent(OneToOne.class))
-                                .toArray();
+                                        .filter(a -> a.annotationType() == Column.class || a.annotationType() == JoinColumn.class)
+                                        .anyMatch(a -> {
+                                            if (a.annotationType() == Column.class && ((Column) a).unique()) {
+                                                return true;
+                                            } else if (a.annotationType() == JoinColumn.class && ((JoinColumn) a).unique()) {
+                                                return true;
+                                            }
+                                            return f.isAnnotationPresent(OneToOne.class);
+                                        })
+                                ).toArray();
 
                 if (uniqueFields.length == 0) {
                     Arrays.stream(Class.forName(table.getClassName()).getDeclaredConstructors())
