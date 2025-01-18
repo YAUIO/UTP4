@@ -45,7 +45,7 @@ public class Book {
         this.publicationYear = publicationYear;
         this.isbn = isbn;
 
-        Tools.checkAndCommit(new Object[]{title,publisher,publicationYear,isbn}, this.getClass().getDeclaredFields(),this);
+        Tools.checkAndCommit(new Object[]{title,author,publisher,publicationYear,isbn}, this.getClass().getDeclaredFields(),this);
     }
 
     @CopyConstructor
@@ -56,7 +56,7 @@ public class Book {
         publicationYear = b.publicationYear;
         isbn = b.isbn;
 
-        Tools.checkAndCommit(new Object[]{title,publisher,publicationYear,isbn}, this.getClass().getDeclaredFields(),this);
+        Tools.checkAndCommit(new Object[]{title,author,publisher,publicationYear,isbn}, this.getClass().getDeclaredFields(),this);
     }
 
     public Integer getId() {
@@ -65,27 +65,27 @@ public class Book {
 
     public void setAuthor(String author) {
         this.author = author;
-        Tools.checkAndCommit(new Object[]{title,publisher,publicationYear,isbn}, this.getClass().getDeclaredFields(),this, true);
+        Tools.checkAndCommit(new Object[]{title,author,publisher,publicationYear,isbn}, this.getClass().getDeclaredFields(),this, true);
     }
 
     public void setIsbn(String isbn) {
         this.isbn = isbn;
-        Tools.checkAndCommit(new Object[]{title,publisher,publicationYear,isbn}, this.getClass().getDeclaredFields(),this, true);
+        Tools.checkAndCommit(new Object[]{title,author,publisher,publicationYear,isbn}, this.getClass().getDeclaredFields(),this, true);
     }
 
     public void setPublicationYear(Integer publicationYear) {
         this.publicationYear = publicationYear;
-        Tools.checkAndCommit(new Object[]{title,publisher,publicationYear,isbn}, this.getClass().getDeclaredFields(),this, true);
+        Tools.checkAndCommit(new Object[]{title,author,publisher,publicationYear,isbn}, this.getClass().getDeclaredFields(),this, true);
     }
 
     public void setPublisher(Publisher publisher) {
         this.publisher = publisher;
-        Tools.checkAndCommit(new Object[]{title,publisher,publicationYear,isbn}, this.getClass().getDeclaredFields(),this, true);
+        Tools.checkAndCommit(new Object[]{title,author,publisher,publicationYear,isbn}, this.getClass().getDeclaredFields(),this, true);
     }
 
     public void setTitle(String title) {
         this.title = title;
-        Tools.checkAndCommit(new Object[]{title,publisher,publicationYear,isbn}, this.getClass().getDeclaredFields(),this, true);
+        Tools.checkAndCommit(new Object[]{title,author,publisher,publicationYear,isbn}, this.getClass().getDeclaredFields(),this, true);
     }
 
     @Override
