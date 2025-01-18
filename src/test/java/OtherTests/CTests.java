@@ -1,4 +1,4 @@
-package ConnectionTests;
+package OtherTests;
 
 import ClassTests.Utils;
 import db.*;
