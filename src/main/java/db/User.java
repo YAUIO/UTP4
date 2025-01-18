@@ -3,6 +3,7 @@ package db;
 import db.Annotations.CopyConstructor;
 import db.Annotations.FullArgsConstructor;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Pattern;
 
 import java.util.Objects;
 
@@ -17,9 +18,17 @@ public class User {
     private String name;
 
     @Column(unique = true, nullable = false)
+    @Pattern(
+            regexp = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$",
+            message = "Invalid email format."
+    )
     private String email;
 
     @Column(nullable = false)
+    @Pattern(
+            regexp = "^\\+?[0-9]{10,15}$",
+            message = "Invalid phone number. It must be 10 to 15 digits and can start with '+'."
+    )
     private String phoneNumber;
 
     @Column(nullable = false)

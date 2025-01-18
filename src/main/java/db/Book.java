@@ -3,6 +3,7 @@ package db;
 import db.Annotations.CopyConstructor;
 import db.Annotations.FullArgsConstructor;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Pattern;
 
 import java.util.Objects;
 
@@ -24,9 +25,17 @@ public class Book {
     private Publisher publisher;
 
     @Column(nullable = false)
+    @Pattern(
+            regexp = "^\\d{4}$",
+            message = "Invalid year. It must be a 4-digit number between 1000 and 9999."
+    )
     private Integer publicationYear;
 
     @Column (unique = true, nullable = false)
+    @Pattern(
+            regexp = "^(?:\\d{9}[\\dX]|\\d{13})$",
+            message = "Invalid ISBN format. It must be a valid ISBN-10 or ISBN-13."
+    )
     private String isbn;
 
     public Book(){}
