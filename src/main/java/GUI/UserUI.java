@@ -98,7 +98,7 @@ public class UserUI {
                 try {
                     fs.get().setAccessible(true);
                     Integer id = (Integer) fs.get().get(book);
-                    return UIUtils.checkAvailableCopies(id);
+                    return UIUtils.checkAvailableCopies(id, null);
                 } catch (Exception ex) {
                     new Error(ex);
                 }
