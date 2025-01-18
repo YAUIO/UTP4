@@ -9,7 +9,16 @@ import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Optional;
 
+/**
+ * Tools for checking things before inserting
+ */
 public class Tools {
+    /**
+     * method, which takes
+     * @param args - arguments to check
+     * @param fields - fields where to get .nullable() bool
+     * @param target - target which to insert to db
+     */
     public static void checkAndCommit(Object[] args, Field[] fields, Object target) {
         check(args, fields);
         EntityManager em = Init.getEntityManager();
@@ -18,6 +27,13 @@ public class Tools {
         em.getTransaction().commit();
     }
 
+    /**
+     * method, which takes
+     * @param args - arguments to check
+     * @param fields - fields where to get .nullable() bool
+     * @param target - target which to insert to db
+     * @param merge - boolean which needs to be set if target exists in db
+     */
     public static void checkAndCommit(Object[] args, Field[] fields, Object target, Boolean merge) {
         check(args, fields);
         EntityManager em = Init.getEntityManager();
@@ -28,6 +44,10 @@ public class Tools {
         em.getTransaction().commit();
     }
 
+    /**
+     * logics of checkAndCommit
+     * calls checkArg on each argument with correlating field
+     */
     private static void check( Object[] args, Field[] fields) {
         fields = Arrays.copyOfRange(fields, 1, fields.length);
         int i = 0;
@@ -48,6 +68,10 @@ public class Tools {
         }
     }
 
+    /**
+     * logics of check
+     * throws NullPointerException if the argument is null or blank while the field is not nullable
+     */
     private static void checkArg(Object arg, Boolean nullable, Field f) {
         if (!nullable && arg == null) {
             throw new NullPointerException("Argument \"" + f.getName() + "\" can't be null");

@@ -8,6 +8,9 @@ import jakarta.persistence.*;
 import java.util.Arrays;
 import java.util.Objects;
 
+/**
+ * Copy entity for JPA db
+ */
 @Entity
 @Table(name = "Copies")
 public class Copy {

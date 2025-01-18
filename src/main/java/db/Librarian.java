@@ -8,6 +8,9 @@ import java.text.DateFormat;
 import java.util.Date;
 import java.util.Objects;
 
+/**
+ * Librarian entity for JPA db
+ */
 @Entity
 @Table(name = "Librarians")
 public class Librarian {

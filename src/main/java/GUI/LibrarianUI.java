@@ -9,14 +9,14 @@ import org.reflections.util.ConfigurationBuilder;
 
 import javax.swing.*;
 import java.awt.*;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.text.DateFormat;
 import java.util.*;
-import java.util.List;
 
+/**
+ * A complete Librarian UI for editing and viewing DB records
+ */
 public class LibrarianUI {
     private final db.Librarian user;
     private DisplayTable table;
@@ -36,6 +36,9 @@ public class LibrarianUI {
         frame.setJMenuBar(jmb);
     }
 
+    /**
+     * Get the "Edit" button for the top bar
+     */
     private JMenu getEditChooser() {
         JMenu tables = new JMenu("Edit");
         JMenuItem create = new JMenuItem("Create");
@@ -55,6 +58,9 @@ public class LibrarianUI {
         return tables;
     }
 
+    /**
+     * Get the table chooser for the top bar
+     */
     private JMenu getTableChooser(TableWrapper frame) {
         JMenu tables = new JMenu("Data");
 
@@ -67,7 +73,7 @@ public class LibrarianUI {
                 .filter(_class -> _class.getName().contains("db.")) //search for subclasses of package db
                 .filter(_class -> _class.isAnnotationPresent(Entity.class))
                 .forEach(_class -> {
-                    JMenuItem jmi = new JMenuItem(_class.getName());
+                    JMenuItem jmi = new JMenuItem(_class.getSimpleName());
                     jmi.addActionListener(e -> actionTableListener(_class, frame));
                     tables.add(jmi);
                 });
@@ -75,11 +81,17 @@ public class LibrarianUI {
         return tables;
     }
 
+    /**
+     * A listener-like function which changes the data on the table when necessary
+     */
     private void actionTableListener(Class<?> ent, TableWrapper tw) {
         table = new DisplayTable(ent);
         tw.changeTable(table);
     }
 
+    /**
+     * Delete record operation
+     */
     private Runnable getDeleteLambda() {
         return () -> {
             Object o = null;
@@ -153,6 +165,9 @@ public class LibrarianUI {
         };
     }
 
+    /**
+     * Create record operation
+     */
     private Runnable getCreateLambda() {
         return () -> {
             JDialog dialog = new JDialog(frame, "Create");
@@ -263,6 +278,9 @@ public class LibrarianUI {
         };
     }
 
+    /**
+     * Copy record operation
+     */
     private Runnable getCopyLambda() {
         return () -> {
             try {

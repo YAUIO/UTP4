@@ -3,6 +3,9 @@ package GUI;
 import javax.swing.*;
 import java.awt.*;
 
+/**
+ * JFrame with embedded JScrollPane of a table in one class
+ */
 public class TableWrapper extends JFrame {
     private JScrollPane table;
     private boolean editable = true;
@@ -34,6 +37,9 @@ public class TableWrapper extends JFrame {
         this.editable = editable;
     }
 
+    /**
+     * Replace current table with another
+     */
     public void changeTable(DisplayTable table) {
         setVisible(false);
         table.setGuiImpl(this);

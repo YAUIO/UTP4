@@ -7,6 +7,9 @@ import jakarta.validation.constraints.Pattern;
 
 import java.util.Objects;
 
+/**
+ * User entity for JPA db
+ */
 @Entity
 @Table(name = "Users")
 public class User {

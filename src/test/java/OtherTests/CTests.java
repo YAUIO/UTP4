@@ -15,6 +15,9 @@ import org.reflections.util.ConfigurationBuilder;
 import java.lang.reflect.Field;
 import java.util.*;
 
+/**
+ * Connection tests
+ */
 public class CTests {
     @BeforeAll
     public static void init() {

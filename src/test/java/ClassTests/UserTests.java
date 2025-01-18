@@ -11,6 +11,9 @@ import java.lang.reflect.Field;
 import java.util.*;
 import java.util.List;
 
+/**
+ * Tests for User entity
+ */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class UserTests {
     private static User user;

@@ -6,6 +6,9 @@ import jakarta.persistence.NoResultException;
 import javax.swing.*;
 import java.awt.*;
 
+/**
+ * Login (and registration) window for user
+ */
 public class Login {
     public Login() {
 
@@ -108,6 +111,10 @@ public class Login {
         frame.setVisible(true);
     }
 
+    /**
+     * Function to make the
+     * @param user log in into the system, creating LibrarianUI if he is part of Librarian table, or UserUI otherwise
+     */
     private void login(db.User user) {
         try {
             db.Librarian lib = db.Init.getEntityManager().createQuery("SELECT l FROM Librarian l WHERE l.user = :u", db.Librarian.class)

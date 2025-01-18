@@ -4,6 +4,9 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
 
+/**
+ * DB Initializer, and class from which EntityManagers are generated
+ */
 public class Init {
     private static EntityManagerFactory emf ;
 

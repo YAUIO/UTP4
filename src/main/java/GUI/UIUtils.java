@@ -4,11 +4,10 @@ import db.Borrowing;
 import db.Copy;
 import db.Init;
 import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 
 import javax.annotation.Nullable;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -16,7 +15,13 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.util.*;
 
+/**
+ * Collection of repeating fragments of code
+ */
 public class UIUtils {
+    /**
+     * Checks if all arguments are acceptable in unique terms
+     */
     protected static void checkIfUnique(Object[] args, DisplayTable table) throws ClassNotFoundException {
         ArrayList<Field> fields = new ArrayList<>(List.of(Class.forName(table.getClassName()).getDeclaredFields()).subList(1, args.length + 1));
 
@@ -24,8 +29,11 @@ public class UIUtils {
 
         Arrays.stream(_class.getDeclaredFields())
                 .filter(f -> Arrays.stream(f.getDeclaredAnnotations())
-                        .filter(a -> a.annotationType() == Column.class)
-                        .anyMatch(a -> ((Column) a).unique()) || f.isAnnotationPresent(OneToOne.class))
+                        .filter(a -> a.annotationType() == Column.class || a.annotationType() == JoinColumn.class)
+                        .anyMatch(a -> {
+                            if (a.annotationType() == Column.class && ((Column) a).unique()) {
+                                return true;
+                            } else return a.annotationType() == JoinColumn.class && ((JoinColumn) a).unique();}) || f.isAnnotationPresent(OneToOne.class))
                 .forEach(f -> {
                     List<?> result = db.Init.getEntityManager().createQuery("SELECT f." + f.getName() + " from " + _class.getSimpleName() + " f", f.getType())
                             .getResultList();
@@ -36,6 +44,12 @@ public class UIUtils {
                 });
     }
 
+    /**
+     * Converts
+     * @param arg from string to
+     * @param types and outputs to
+     * @param output array
+     */
     protected static void parseArguments(Object[] output, String[] arg, Class<?>[] types, DisplayTable table) throws InvocationTargetException, IllegalAccessException, ClassNotFoundException, ParseException {
         Object[] args = output;
         if (args == null) {
@@ -72,6 +86,9 @@ public class UIUtils {
         }
     }
 
+    /**
+     * Checks if there are any available copies for borrowing
+     */
     public static synchronized boolean checkAvailableCopies(Integer bookId, @Nullable Copy copy) {
         List<?> copies =
                 Init.getEntityManager()

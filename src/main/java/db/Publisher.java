@@ -7,6 +7,9 @@ import jakarta.validation.constraints.Pattern;
 
 import java.util.Objects;
 
+/**
+ * Publisher entity for JPA db
+ */
 @Entity
 @Table(name = "Publishers")
 public class Publisher {

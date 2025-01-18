@@ -10,6 +10,9 @@ import org.junit.jupiter.api.*;
 import java.lang.reflect.Field;
 import java.util.*;
 
+/**
+ * Tests for Borrowing entity
+ */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class BorrowingTests {
     private static Borrowing b;

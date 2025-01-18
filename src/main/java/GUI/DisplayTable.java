@@ -13,6 +13,9 @@ import java.text.DateFormat;
 import java.util.*;
 import java.util.function.Predicate;
 
+/**
+ * Class which is a TableWrapper helper class
+ */
 public class DisplayTable {
     private final Class<?> entity;
     private final HashMap<Field, Method> fields;
@@ -114,6 +117,9 @@ public class DisplayTable {
         return ret.toString();
     }
 
+    /**
+     * Refresh contents of the table
+     */
     public void update() {
         ArrayList<StringBuilder> tsv = new ArrayList<>();
         tsv.add(headerLine);

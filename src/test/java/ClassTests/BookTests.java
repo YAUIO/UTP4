@@ -13,6 +13,9 @@ import org.junit.jupiter.api.*;
 import java.lang.reflect.Field;
 import java.util.*;
 
+/**
+ * Tests for Book entity
+ */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class BookTests {
     private static Book b;

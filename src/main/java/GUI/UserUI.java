@@ -9,6 +9,9 @@ import java.lang.reflect.Field;
 import java.util.*;
 import java.util.function.Predicate;
 
+/**
+ * User UI implementation for viewing books and own borrowings
+ */
 public class UserUI {
     private final db.User user;
     private DisplayTable table;

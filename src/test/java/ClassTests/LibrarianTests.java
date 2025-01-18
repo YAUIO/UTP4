@@ -11,6 +11,9 @@ import org.junit.jupiter.api.*;
 import java.lang.reflect.Field;
 import java.util.*;
 
+/**
+ * Tests for Librarian entity
+ */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class LibrarianTests {
     private static Librarian b;

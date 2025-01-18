@@ -12,6 +12,9 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.util.*;
 
+/**
+ * Tests for Copy entity
+ */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class CopiesTests {
     private static Copy b;

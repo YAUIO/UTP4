@@ -13,6 +13,9 @@ import org.junit.jupiter.api.*;
 import java.lang.reflect.Field;
 import java.util.*;
 
+/**
+ * Tests for Publisher entity
+ */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class PublisherTests {
     private static Publisher b;
