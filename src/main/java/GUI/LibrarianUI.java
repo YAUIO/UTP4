@@ -106,6 +106,7 @@ public class LibrarianUI {
                         long dependentOn =
                                 reflections.getSubTypesOf(Object.class).stream()
                                         .filter(_class -> _class.getName().contains("db.")) //search for subclasses of package db
+                                        .filter(_class -> _class.isAnnotationPresent(Entity.class))
                                         .filter(_class ->
                                                 Arrays.stream(_class.getDeclaredFields())
                                                         .anyMatch(f -> f.getType() == tempObject.getClass())
