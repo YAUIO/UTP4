@@ -16,7 +16,7 @@ public class Copy {
     private Integer id;
 
     @ManyToOne
-    @JoinColumn(name = "book_id", nullable = false)
+    @JoinColumn(nullable = false)
     Book book;
 
     @Column(nullable = false)

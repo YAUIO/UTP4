@@ -20,7 +20,7 @@ public class Book {
     private String author;
 
     @ManyToOne
-    @JoinColumn(name = "publisher_id", nullable = false)
+    @JoinColumn(nullable = false)
     private Publisher publisher;
 
     @Column(nullable = false)

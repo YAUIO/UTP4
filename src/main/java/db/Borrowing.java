@@ -18,11 +18,11 @@ public class Borrowing {
     private Integer id;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(nullable = false)
     private User user;
 
     @ManyToOne
-    @JoinColumn(name = "copy_id", nullable = false)
+    @JoinColumn(nullable = false)
     private Copy copy;
 
     @Column(nullable = false)

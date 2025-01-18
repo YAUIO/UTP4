@@ -16,7 +16,7 @@ public class Librarian {
     private Integer id;
 
     @OneToOne
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(nullable = false)
     private User user;
 
     @Column(nullable = false)
