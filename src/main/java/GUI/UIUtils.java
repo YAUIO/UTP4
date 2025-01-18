@@ -5,6 +5,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.OneToOne;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -24,7 +25,7 @@ public class UIUtils {
                         .anyMatch(a -> ((Column) a).unique()) || f.isAnnotationPresent(OneToOne.class))
                 .forEach(f -> {
                     List<?> result = db.Init.getEntityManager().createQuery("SELECT f." + f.getName() + " from " + _class.getSimpleName() + " f", f.getType())
-                                .getResultList();
+                            .getResultList();
 
                     if (result.contains(args[fields.indexOf(f)])) {
                         throw new RuntimeException(f.getName() + " must be unique");
@@ -32,7 +33,7 @@ public class UIUtils {
                 });
     }
 
-    protected static void parseArguments (Object[] output, String[] arg, Class<?>[] types, DisplayTable table) throws InvocationTargetException, IllegalAccessException, ClassNotFoundException, ParseException {
+    protected static void parseArguments(Object[] output, String[] arg, Class<?>[] types, DisplayTable table) throws InvocationTargetException, IllegalAccessException, ClassNotFoundException, ParseException {
         Object[] args = output;
         if (args == null) {
             args = new Object[arg.length];
@@ -68,7 +69,7 @@ public class UIUtils {
         }
     }
 
-    public static boolean checkAvailableCopies (Integer bookId) {
+    public static boolean checkAvailableCopies(Integer bookId) {
         List<?> copies =
                 Init.getEntityManager()
                         .createQuery("SELECT c FROM Copy c WHERE c.book.id = :id", db.Copy.class)
