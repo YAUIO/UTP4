@@ -8,6 +8,8 @@ import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.*;
 
 import java.lang.reflect.Field;
+import java.text.DateFormat;
+import java.text.ParseException;
 import java.util.*;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -105,7 +107,12 @@ public class CopiesTests {
         List<Copy> before = Utils.getAllEntities(Copy.class);
 
         db.User user = Utils.getUser();
-        Borrowing bor = new Borrowing(user, b, new Date());
+        Borrowing bor = null;
+        try {
+            bor = new Borrowing(user, b, DateFormat.getDateInstance(DateFormat.SHORT).parse("01.01.2026"));
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
+        }
 
         LibrarianUI lu = new LibrarianUI(new Librarian());
         Arrays.stream(lu.getClass().getDeclaredFields()).filter(f -> f.getName().equals("frame")).forEach(f -> {
