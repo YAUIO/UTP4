@@ -69,8 +69,8 @@ public class CTests {
     @Test
     public void BorrowingUser() {
         User u = ClassTests.Utils.getUser();
-        User u1 = new User("ASD", "ASD", "ASD", "ASD");
-        Publisher p = new Publisher("hello", "its", "me");
+        User u1 = new User("ASD", "kjdfgjkdfg@lfg.com", "+387458735346", "ASD");
+        Publisher p = new Publisher("hello", "its", "+8475839405");
         Book b = ClassTests.Utils.getBook(p);
         ArrayList<Borrowing> bor = new ArrayList<>();
         int size = 10;
@@ -113,9 +113,9 @@ public class CTests {
 
     @Test
     public void BookCopy() {
-        Publisher p = new Publisher("hello", "its", "3466436436");
+        Publisher p = new Publisher("hello", "its", "+3466436436");
         Book u = ClassTests.Utils.getBook(p);
-        Book u1 = new Book("DSA","dfsdf",p,1243,"dlfgi87435879384975");
+        Book u1 = new Book("DSA","dfsdf",p,1243,"3425212345");
 
         ArrayList<Copy> bor = new ArrayList<>();
         int size = 10;
@@ -173,6 +173,48 @@ public class CTests {
 
     @Test
     public void BookPublisher() {
-        
+        Publisher p = new Publisher("hello", "its", "+3466436436");
+        Publisher p1 = new Publisher("lol","dsfgsdfg","+47538459392");
+
+        ArrayList<Book> bor = new ArrayList<>();
+        int size = 10;
+        long isbn = 1234567892;
+        HashMap<Book,Integer> arr = new HashMap<>();
+        HashMap<Book,Integer> arra = new HashMap<>();
+        for (int i = 0; i < size; i++) {
+            if (i%2==0) {
+                Book b = new Book("some","person",p,2007,String.valueOf(isbn++));
+                bor.add(b);
+                arr.put(bor.getLast(), p.getId());
+            } else {
+                Book b = new Book("some","person",p1,2007,String.valueOf(isbn++));
+                bor.add(b);
+                arr.put(bor.getLast(), p1.getId());
+            }
+        }
+
+        Optional<Field> user =
+                Arrays.stream(Book.class.getDeclaredFields())
+                        .filter(f -> f.getType() == Publisher.class)
+                        .findFirst();
+
+        Assertions.assertEquals(db.Init.getEntityManager().createQuery("SELECT b from Book b", Book.class).getResultList(), bor.stream().toList());
+
+        if (user.isPresent()) {
+            user.get().setAccessible(true);
+            for (Book key : arr.keySet()) {
+                Book bi = db.Init.getEntityManager().createQuery("SELECT uid from Book uid WHERE uid.id = :i", Book.class)
+                        .setParameter("i", key.getId()).getSingleResult();
+                try {
+                    arra.put(bi, ((Publisher) user.get().get(bi)).getId());
+                } catch (IllegalAccessException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
+            Assertions.assertEquals(arr, arra);
+        } else {
+            throw new RuntimeException("No publisher field");
+        }
     }
 }
