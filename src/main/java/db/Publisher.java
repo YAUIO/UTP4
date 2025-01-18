@@ -34,10 +34,7 @@ public class Publisher {
         name = p.name;
         address = p.address;
         phone = p.phone;
-        EntityManager em = Init.getEntityManager();
-        em.getTransaction().begin();
-        em.persist(this);
-        em.getTransaction().commit();
+        Tools.checkAndCommit(new Object[]{name,address,phone}, this.getClass().getDeclaredFields(),this);
     }
 
     @FullArgsConstructor
@@ -45,10 +42,7 @@ public class Publisher {
         this.name = name;
         this.address = address;
         this.phone = phone;
-        EntityManager em = Init.getEntityManager();
-        em.getTransaction().begin();
-        em.persist(this);
-        em.getTransaction().commit();
+        Tools.checkAndCommit(new Object[]{name,address,phone}, this.getClass().getDeclaredFields(),this);
     }
 
     public Integer getId() {
@@ -58,25 +52,17 @@ public class Publisher {
     public void setAddress(String address) {
         this.address = address;
         EntityManager em = Init.getEntityManager();
-        em.getTransaction().begin();
-        em.merge(this);
-        em.getTransaction().commit();
+        Tools.checkAndCommit(new Object[]{name,address,phone}, this.getClass().getDeclaredFields(),this, true);
     }
 
     public void setName(String name) {
         this.name = name;
-        EntityManager em = Init.getEntityManager();
-        em.getTransaction().begin();
-        em.merge(this);
-        em.getTransaction().commit();
+        Tools.checkAndCommit(new Object[]{name,address,phone}, this.getClass().getDeclaredFields(),this, true);
     }
 
     public void setPhone(String phone) {
         this.phone = phone;
-        EntityManager em = Init.getEntityManager();
-        em.getTransaction().begin();
-        em.merge(this);
-        em.getTransaction().commit();
+        Tools.checkAndCommit(new Object[]{name,address,phone}, this.getClass().getDeclaredFields(),this, true);
     }
 
     @Override

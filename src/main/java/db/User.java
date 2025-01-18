@@ -39,7 +39,11 @@ public class User {
 
     @CopyConstructor
     public User(User u) {
-        throw new RuntimeException("Can't copy a user -> email must be unique");
+        this.name = u.name;
+        this.email = u.email;
+        this.phoneNumber = u.phoneNumber;
+        this.address = u.address;
+        Tools.checkAndCommit(new Object[]{name,email,phoneNumber,address}, this.getClass().getDeclaredFields(),this);
     }
 
     @FullArgsConstructor
@@ -48,10 +52,7 @@ public class User {
         this.email = email;
         this.phoneNumber = phoneNumber;
         this.address = address;
-        EntityManager em = Init.getEntityManager();
-        em.getTransaction().begin();
-        em.persist(this);
-        em.getTransaction().commit();
+        Tools.checkAndCommit(new Object[]{name,email,phoneNumber,address}, this.getClass().getDeclaredFields(),this);
     }
 
     public Integer getId() {
@@ -60,34 +61,22 @@ public class User {
 
     public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
-        EntityManager em = Init.getEntityManager();
-        em.getTransaction().begin();
-        em.merge(this);
-        em.getTransaction().commit();
+        Tools.checkAndCommit(new Object[]{name,email,phoneNumber,address}, this.getClass().getDeclaredFields(),this, true);
     }
 
     public void setName(String name) {
         this.name = name;
-        EntityManager em = Init.getEntityManager();
-        em.getTransaction().begin();
-        em.merge(this);
-        em.getTransaction().commit();
+        Tools.checkAndCommit(new Object[]{name,email,phoneNumber,address}, this.getClass().getDeclaredFields(),this, true);
     }
 
     public void setEmail(String email) {
         this.email = email;
-        EntityManager em = Init.getEntityManager();
-        em.getTransaction().begin();
-        em.merge(this);
-        em.getTransaction().commit();
+        Tools.checkAndCommit(new Object[]{name,email,phoneNumber,address}, this.getClass().getDeclaredFields(),this, true);
     }
 
     public void setAddress(String address) {
         this.address = address;
-        EntityManager em = Init.getEntityManager();
-        em.getTransaction().begin();
-        em.merge(this);
-        em.getTransaction().commit();
+        Tools.checkAndCommit(new Object[]{name,email,phoneNumber,address}, this.getClass().getDeclaredFields(),this, true);
     }
 
     @Override

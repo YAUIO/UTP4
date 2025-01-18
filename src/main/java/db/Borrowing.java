@@ -42,15 +42,17 @@ public class Borrowing {
         if (!UIUtils.checkAvailableCopies(book.book.getId())) {
             throw new RuntimeException("There aren't any free copies");
         }
+
+        if (returnDate.before(new Date())) {
+            book.setStatus("FREE");
+        }
+
         this.user = user;
         this.copy = book;
         this.borrowDate = borrowDate;
         this.returnDate = returnDate;
 
-        EntityManager em = Init.getEntityManager();
-        em.getTransaction().begin();
-        em.persist(this);
-        em.getTransaction().commit();
+        Tools.checkAndCommit(new Object[]{user,copy,borrowDate,returnDate}, this.getClass().getDeclaredFields(),this);
     }
 
     public Borrowing(User user, Copy book, Date borrowDate) {
@@ -68,10 +70,7 @@ public class Borrowing {
         this.borrowDate = borrowDate;
         this.returnDate = null;
 
-        EntityManager em = Init.getEntityManager();
-        em.getTransaction().begin();
-        em.persist(this);
-        em.getTransaction().commit();
+        Tools.checkAndCommit(new Object[]{user,copy,borrowDate,returnDate}, this.getClass().getDeclaredFields(),this);
     }
 
     @CopyConstructor
@@ -85,10 +84,7 @@ public class Borrowing {
         borrowDate = b.borrowDate;
         returnDate = b.returnDate;
 
-        EntityManager em = Init.getEntityManager();
-        em.getTransaction().begin();
-        em.persist(this);
-        em.getTransaction().commit();
+        Tools.checkAndCommit(new Object[]{user,copy,borrowDate,returnDate}, this.getClass().getDeclaredFields(),this);
     }
 
     public Borrowing(){}
@@ -99,10 +95,7 @@ public class Borrowing {
 
     public void setCopy(Copy book) {
         this.copy = book;
-        EntityManager em = Init.getEntityManager();
-        em.getTransaction().begin();
-        em.merge(this);
-        em.getTransaction().commit();
+        Tools.checkAndCommit(new Object[]{user,copy,borrowDate,returnDate}, this.getClass().getDeclaredFields(),this, true);
     }
 
     public void setBorrowDate(Date borrowDate) {
@@ -110,10 +103,7 @@ public class Borrowing {
             throw new RuntimeException("BorrowDate should be before ReturnDate");
         }
         this.borrowDate = borrowDate;
-        EntityManager em = Init.getEntityManager();
-        em.getTransaction().begin();
-        em.merge(this);
-        em.getTransaction().commit();
+        Tools.checkAndCommit(new Object[]{user,copy,borrowDate,returnDate}, this.getClass().getDeclaredFields(),this, true);
     }
 
     public void setReturnDate(Date returnDate) {
@@ -124,18 +114,12 @@ public class Borrowing {
         if (returnDate.before(new Date())) {
             copy.setStatus("FREE");
         }
-        EntityManager em = Init.getEntityManager();
-        em.getTransaction().begin();
-        em.merge(this);
-        em.getTransaction().commit();
+        Tools.checkAndCommit(new Object[]{user,copy,borrowDate,returnDate}, this.getClass().getDeclaredFields(),this, true);
     }
 
     public void setUser(User user) {
         this.user = user;
-        EntityManager em = Init.getEntityManager();
-        em.getTransaction().begin();
-        em.merge(this);
-        em.getTransaction().commit();
+        Tools.checkAndCommit(new Object[]{user,copy,borrowDate,returnDate}, this.getClass().getDeclaredFields(),this, true);
     }
 
     @Override

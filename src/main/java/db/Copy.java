@@ -5,6 +5,7 @@ import db.Annotations.FullArgsConstructor;
 import jakarta.persistence.*;
 
 
+import java.util.Arrays;
 import java.util.Objects;
 
 @Entity
@@ -34,17 +35,16 @@ public class Copy {
         states s = null;
         try {
             s = states.valueOf(status);
-        } catch (Exception _){}
+        } catch (Exception _){
+            System.out.println("Incorrect status, falling back to default {" + states.FREE + "}. List of states: " + Arrays.toString(states.values()));
+        }
         if (status == null || s == null) {
             status = "FREE";
         }
         this.book = book;
         this.copyNumber = copyNumber;
         this.status = status;
-        EntityManager em = Init.getEntityManager();
-        em.getTransaction().begin();
-        em.persist(this);
-        em.getTransaction().commit();
+        Tools.checkAndCommit(new Object[]{book,copyNumber,status}, this.getClass().getDeclaredFields(),this);
     }
 
     @CopyConstructor
@@ -52,10 +52,7 @@ public class Copy {
         book = c.book;
         copyNumber = c.copyNumber;
         status = c.status;
-        EntityManager em = Init.getEntityManager();
-        em.getTransaction().begin();
-        em.persist(this);
-        em.getTransaction().commit();
+        Tools.checkAndCommit(new Object[]{book,copyNumber,status}, this.getClass().getDeclaredFields(),this);
     }
 
     public Copy(){}
@@ -67,25 +64,17 @@ public class Copy {
     public void setBook(Book book) {
         this.book = book;
         EntityManager em = Init.getEntityManager();
-        em.getTransaction().begin();
-        em.merge(this);
-        em.getTransaction().commit();
+        Tools.checkAndCommit(new Object[]{book,copyNumber,status}, this.getClass().getDeclaredFields(),this, true);
     }
 
     public void setCopyNumber(Integer copyNumber) {
         this.copyNumber = copyNumber;
-        EntityManager em = Init.getEntityManager();
-        em.getTransaction().begin();
-        em.merge(this);
-        em.getTransaction().commit();
+        Tools.checkAndCommit(new Object[]{book,copyNumber,status}, this.getClass().getDeclaredFields(),this, true);
     }
 
     public void setStatus(String status) {
         this.status = status;
-        EntityManager em = Init.getEntityManager();
-        em.getTransaction().begin();
-        em.merge(this);
-        em.getTransaction().commit();
+        Tools.checkAndCommit(new Object[]{book,copyNumber,status}, this.getClass().getDeclaredFields(),this, true);
     }
 
     @Override

@@ -1,5 +1,6 @@
 package db;
 
+import GUI.UIUtils;
 import db.Annotations.CopyConstructor;
 import db.Annotations.FullArgsConstructor;
 import jakarta.persistence.*;
@@ -44,10 +45,7 @@ public class Book {
         this.publicationYear = publicationYear;
         this.isbn = isbn;
 
-        EntityManager em = Init.getEntityManager();
-        em.getTransaction().begin();
-        em.persist(this);
-        em.getTransaction().commit();
+        Tools.checkAndCommit(new Object[]{title,publisher,publicationYear,isbn}, this.getClass().getDeclaredFields(),this);
     }
 
     @CopyConstructor
@@ -58,10 +56,7 @@ public class Book {
         publicationYear = b.publicationYear;
         isbn = b.isbn;
 
-        EntityManager em = Init.getEntityManager();
-        em.getTransaction().begin();
-        em.persist(this);
-        em.getTransaction().commit();
+        Tools.checkAndCommit(new Object[]{title,publisher,publicationYear,isbn}, this.getClass().getDeclaredFields(),this);
     }
 
     public Integer getId() {
@@ -70,42 +65,27 @@ public class Book {
 
     public void setAuthor(String author) {
         this.author = author;
-        EntityManager em = Init.getEntityManager();
-        em.getTransaction().begin();
-        em.merge(this);
-        em.getTransaction().commit();
+        Tools.checkAndCommit(new Object[]{title,publisher,publicationYear,isbn}, this.getClass().getDeclaredFields(),this, true);
     }
 
     public void setIsbn(String isbn) {
         this.isbn = isbn;
-        EntityManager em = Init.getEntityManager();
-        em.getTransaction().begin();
-        em.merge(this);
-        em.getTransaction().commit();
+        Tools.checkAndCommit(new Object[]{title,publisher,publicationYear,isbn}, this.getClass().getDeclaredFields(),this, true);
     }
 
     public void setPublicationYear(Integer publicationYear) {
         this.publicationYear = publicationYear;
-        EntityManager em = Init.getEntityManager();
-        em.getTransaction().begin();
-        em.merge(this);
-        em.getTransaction().commit();
+        Tools.checkAndCommit(new Object[]{title,publisher,publicationYear,isbn}, this.getClass().getDeclaredFields(),this, true);
     }
 
     public void setPublisher(Publisher publisher) {
         this.publisher = publisher;
-        EntityManager em = Init.getEntityManager();
-        em.getTransaction().begin();
-        em.merge(this);
-        em.getTransaction().commit();
+        Tools.checkAndCommit(new Object[]{title,publisher,publicationYear,isbn}, this.getClass().getDeclaredFields(),this, true);
     }
 
     public void setTitle(String title) {
         this.title = title;
-        EntityManager em = Init.getEntityManager();
-        em.getTransaction().begin();
-        em.merge(this);
-        em.getTransaction().commit();
+        Tools.checkAndCommit(new Object[]{title,publisher,publicationYear,isbn}, this.getClass().getDeclaredFields(),this, true);
     }
 
     @Override

@@ -31,10 +31,7 @@ public class Librarian {
         employmentDate = l.employmentDate;
         position = l.position;
 
-        EntityManager em = Init.getEntityManager();
-        em.getTransaction().begin();
-        em.persist(this);
-        em.getTransaction().commit();
+        Tools.checkAndCommit(new Object[]{user,employmentDate,position}, this.getClass().getDeclaredFields(),this);
     }
 
     @FullArgsConstructor
@@ -45,20 +42,14 @@ public class Librarian {
         this.user = user;
         this.employmentDate = employmentDate;
         this.position = position;
-        EntityManager em = Init.getEntityManager();
-        em.getTransaction().begin();
-        em.persist(this);
-        em.getTransaction().commit();
+        Tools.checkAndCommit(new Object[]{user,employmentDate,position}, this.getClass().getDeclaredFields(),this);
     }
 
     public Librarian(){}
 
     public void setUser(User user) {
         this.user = user;
-        EntityManager em = Init.getEntityManager();
-        em.getTransaction().begin();
-        em.merge(this);
-        em.getTransaction().commit();
+        Tools.checkAndCommit(new Object[]{user,employmentDate,position}, this.getClass().getDeclaredFields(),this, true);
     }
 
     public void setEmploymentDate(Date employmentDate) {
@@ -66,18 +57,12 @@ public class Librarian {
             throw new RuntimeException("Can't be employed in future");
         }
         this.employmentDate = employmentDate;
-        EntityManager em = Init.getEntityManager();
-        em.getTransaction().begin();
-        em.merge(this);
-        em.getTransaction().commit();
+        Tools.checkAndCommit(new Object[]{user,employmentDate,position}, this.getClass().getDeclaredFields(),this, true);
     }
 
     public void setPosition(String position) {
         this.position = position;
-        EntityManager em = Init.getEntityManager();
-        em.getTransaction().begin();
-        em.merge(this);
-        em.getTransaction().commit();
+        Tools.checkAndCommit(new Object[]{user,employmentDate,position}, this.getClass().getDeclaredFields(),this, true);
     }
 
     @Override
