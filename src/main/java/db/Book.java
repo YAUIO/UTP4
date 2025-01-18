@@ -25,10 +25,6 @@ public class Book {
     private Publisher publisher;
 
     @Column(nullable = false)
-    @Pattern(
-            regexp = "^\\d{4}$",
-            message = "Invalid year. It must be a 4-digit number between 1000 and 9999."
-    )
     private Integer publicationYear;
 
     @Column (unique = true, nullable = false)
