@@ -41,7 +41,7 @@ public class PublisherTests {
     public void createTest() {
         List<Publisher> pre = Utils.getAllEntities(Publisher.class);
 
-        b = new Publisher("kgdfkgfd", "xd", "gsdg");
+        b = new Publisher("kgdfkgfd", "xd", "+5738492054");
 
         List<Publisher> after = Utils.getAllEntities(Publisher.class);
 
@@ -101,7 +101,7 @@ public class PublisherTests {
     public void removeFailTest() {
         List<Publisher> before = Utils.getAllEntities(Publisher.class);
 
-        Book bk = new Book("h", "asd", b, 2006, "dfhdhgdfhgfj");
+        Book bk = new Book("h", "asd", b, 2006, "4305837283");
 
         LibrarianUI lu = new LibrarianUI(new Librarian());
         Arrays.stream(lu.getClass().getDeclaredFields()).filter(f -> f.getName().equals("frame")).forEach(f -> {

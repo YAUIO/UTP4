@@ -12,10 +12,10 @@ public class Utils{
     }
 
     public static User getUser () {
-        return new User("Artiom", "nby@gmail.com", "+234242324", "Krakow");
+        return new User("Artiom", "nby@gmail.com", "+2342425324", "Krakow");
     }
 
     public static Book getBook (Publisher p) {
-        return new Book("a","a",p,2007,"a");
+        return new Book("a","a",p,2007,"8573849201");
     }
 }

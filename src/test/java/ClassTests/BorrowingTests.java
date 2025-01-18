@@ -25,7 +25,7 @@ public class BorrowingTests {
         db.Init.getEntityManager();
         System.out.println(Init.getEntityManager().createQuery("SELECT u FROM User u", User.class).getResultList());
         u = Utils.getUser();
-        p = new Publisher("hello", "its", "3466436436");
+        p = new Publisher("hello", "its", "+3466436436");
         bk = Utils.getBook(p);
         c = new Copy(bk, 0, "xd");
     }
